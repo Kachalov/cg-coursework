@@ -1,9 +1,11 @@
 #pragma once
 
 #include <inttypes.h>
-#include "canvas.h"
 
-typedef struct {
+#include "canvas.h"
+#include "scene.h"
+
+typedef struct v3_st {
     float x;
     float y;
     float z;
