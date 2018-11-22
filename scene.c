@@ -18,12 +18,15 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf)
     s->canv = canvas_init(w, h, canv ? canv : (rgba_t *)(after + canv_s));
     s->zbuf = zbuf_init(w, h, zbuf ? zbuf : (uint8_t *)(after + canv_s + zbuf_s));
 
+    s->bmask_row = bitmask_init(w, 1);
+
     return s;
 }
 
 export
 void scene_free(scene_t *s)
 {
+    bitmask_free(s->bmask_row);
     heap_free(s);
 }
 

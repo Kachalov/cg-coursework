@@ -11,12 +11,35 @@ typedef struct v3_st {
     float z;
 } v3_t;
 
+typedef struct v4_st {
+    float x;
+    float y;
+    float z;
+    float w;
+} v4_t;
+
+typedef struct m3x3_st {
+    v3_t d[3];
+} m3x3_t;
+
+typedef struct m3x4_st {
+    v4_t d[3];
+} m3x4_t;
+
+typedef struct m4x3_st {
+    v3_t d[4];
+} m4x3_t;
+
+typedef struct m4x4_st {
+    v4_t d[4];
+} m4x4_t;
+
 typedef v3_t vertex_t;
 typedef v3_t normal_t;
 
 typedef struct {
-    vertex_t *vs;
-    uint32_t vl;
+    vertex_t *d;
+    uint32_t l;
 } vertices_t;
 
 typedef vertices_t face_t;
@@ -24,7 +47,7 @@ typedef vertices_t line_t;
 
 typedef struct {
     normal_t *ns;
-    vertex_t *vs;
+    vertices_t *vs;
     face_t *fs;
     uint32_t nl;
     uint32_t vl;

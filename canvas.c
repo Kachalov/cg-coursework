@@ -130,15 +130,16 @@ void draw_triangle(scene_t *s, pixel_t *ps)
     int max_x = min(s->canv->w, max(max(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x));
     int max_y = min(s->canv->h, max(max(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y));
 
-    bitmask_t *bmask = bitmask_init(s->canv->w, 1);
-    point_t ba = {0, 0}, bb = {bmask->w * 8, 1};
+    bitmask_t *bmask = s->bmask_row;
+    point_t ba = {0, 0}, bb = {bmask->w * BITMASK_CHUNK_SIZE, 1};
     point_t pa, pb;
     pixel_t a, b;
     int x_int;
 
-
+    int next = 0;
     for (int y = min_y; y < max_y; y++)
     {
+        next = 0;
         ba.x = 0;
         bitmask_unset(bmask, ba, bb);
         int dirs[3] = {0};
@@ -185,7 +186,7 @@ void draw_triangle(scene_t *s, pixel_t *ps)
             {
                 if (begin != -1)
                 {
-                    end = byte * 8;
+                    end = byte * BITMASK_CHUNK_SIZE;
                     a.pos.y = y;
                     a.pos.x = begin;
                     b.pos.y = y;
@@ -195,26 +196,27 @@ void draw_triangle(scene_t *s, pixel_t *ps)
                     draw_line(s, a, b, NULL);
                     begin = -1;
                     end = -1;
+                    next = 1;
                 }
                 continue;
             }
 
-            if (bmask->data[byte] == 0xff)
+            if (bmask->data[byte] == BITMASK_CHUNK_MASK)
             {
                 if (begin == -1)
                 {
-                    begin = byte * 8;
-                    end = byte * 8 + 8;
+                    begin = byte * BITMASK_CHUNK_SIZE;
+                    end = (byte + 1) * BITMASK_CHUNK_SIZE;
                 }
             }
             else
-            for (int bit = 0; bit < 8; bit++)
+            for (int bit = 0; bit < BITMASK_CHUNK_SIZE; bit++)
             {
                 if ((bmask->data[byte] & (1 << bit)) == 0)
                 {
                     if (begin != -1)
                     {
-                        end = byte * 8 + bit;
+                        end = byte * BITMASK_CHUNK_SIZE + bit;
                         a.pos.y = y;
                         a.pos.x = begin;
                         b.pos.y = y;
@@ -224,25 +226,27 @@ void draw_triangle(scene_t *s, pixel_t *ps)
                         draw_line(s, a, b, NULL);
                         begin = -1;
                         end = -1;
+                        next = 1;
+                        break;
                     }
                 }
                 else
                 {
                     if (begin == -1)
                     {
-                        begin = byte * 8 + bit;
-                        end = byte * 8 + bit;
+                        begin = byte * BITMASK_CHUNK_SIZE + bit;
+                        end = byte * BITMASK_CHUNK_SIZE + bit;
                     }
                     else
                     {
-                        end = byte * 8 + bit;
+                        end = byte * BITMASK_CHUNK_SIZE + bit;
                     }
                 }
             }
+
+            if (next) break;
         }
     }
-
-    bitmask_free(bmask);
 }
 
 void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color)

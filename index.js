@@ -24,7 +24,7 @@ var module,
 exports;
 
 webassembly
-    .load("main.wasm", {'imports': {
+    .load("main.wasm", {'initialMemory': 1, 'imports': {
         clearRect: ctx.clearRect.bind(ctx),
         fillRect: ctx.fillRect.bind(ctx),
         lineTo: ctx.lineTo.bind(ctx),
@@ -37,7 +37,6 @@ webassembly
         }})
     .then(function(module_) {
     exports = (module = module_).exports;
-
 
     let byteSize = width * height * 4;
     var pointer = exports.heap_alloc( byteSize );
@@ -68,6 +67,11 @@ webassembly
             var start = new Date().getTime();
             //exports.bufdraw(pointer, width, height);
             exports.frame(scene);
+            if (!usub.byteLength)
+            {
+                usub = new Uint8ClampedArray(module.memory.buffer, pointer, byteSize);
+                img = new ImageData(usub, width, height);
+            }
             ctx.putImageData(img, 0, 0);
             //exports.draw(scrcont.clientHeight);
             var render = new Date().getTime() - start;
@@ -102,7 +106,9 @@ webassembly
             document.getElementById('fps').innerHTML = 'fps: ' + Math.round(fps) +
                 '<br />render: '+render+'ms<br /> clear: '+clear+'ms<br />'+
                 'frame req delay: ' + (delay > 0 ? Math.round(delay) : 0)+
-                'ms<br />max fps: '+maxFps;
+                'ms<br />max fps: '+maxFps+'<br />Mem usage: '+
+                Math.round(module.memory.buffer.byteLength/1024/1024)+'MB '+
+                module.memory.buffer.byteLength/1024%1024+'KB<br />';
             lastFtpUpdate = Date.now();
             document.getElementById('logs').innerHTML = '';
 

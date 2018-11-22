@@ -19,6 +19,7 @@ typedef v3_t light_t;
 
 typedef struct scene_st {
     canvas_t *canv;
+    bitmask_t *bmask_row;
     zbuf_t *zbuf;
     light_t *ls;
     uint32_t ll;

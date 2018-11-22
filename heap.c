@@ -6,7 +6,11 @@
 export
 void *heap_alloc(int size)
 {
-    return malloc(size);
+//    console_log("Size %d", size);
+    void *r = malloc(size);
+//    if (!r)
+//        console_log("Nullptr! Size %d", size);
+    return r;
 }
 
 export
