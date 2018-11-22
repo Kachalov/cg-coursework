@@ -65,11 +65,11 @@ void frame(scene_t *s)
 }
 
 export
-int find_line_x(point_t a, point_t b, int y)
+int16_t find_line_x(point_t a, point_t b, int16_t y)
 {
     if ((a.y <= b.y && (a.y > y || b.y < y)) ||
         (a.y > b.y && (b.y > y || a.y < y)))
-        return -1;
+        return INT16_MIN;
 
     if (a.y == y)
         return a.x;

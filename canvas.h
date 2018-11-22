@@ -15,13 +15,13 @@ typedef struct rgba_st {
 
 typedef struct canvas_st {
     rgba_t *data;
-    uint32_t w;
-    uint32_t h;
+    uint16_t w;
+    uint16_t h;
 } canvas_t;
 
 typedef struct point_st {
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
 } point_t;
 
 typedef struct pixel_st {
@@ -48,4 +48,4 @@ canvas_t *canvas_init(int w, int h, rgba_t *data);
 void draw_line(scene_t *s, pixel_t pa, pixel_t pb, f_shader_t f_shader);
 void draw_fragment(scene_t *s, vertex_t *vs);
 void draw_triangle(scene_t *s, pixel_t *ps);
-void set_pixel(canvas_t *canv, uint32_t x, uint32_t y, rgba_t *color);
+void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color);

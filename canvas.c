@@ -131,7 +131,6 @@ void draw_triangle(scene_t *s, pixel_t *ps)
     int max_y = min(s->canv->h, max(max(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y));
 
     bitmask_t *bmask = bitmask_init(s->canv->w, 1);
-    int canv_width_bit = s->canv->w % 8;
     point_t ba = {0, 0}, bb = {bmask->w * 8, 1};
     point_t pa, pb;
     pixel_t a, b;
@@ -154,24 +153,24 @@ void draw_triangle(scene_t *s, pixel_t *ps)
             x_int = find_line_x(pa, pb, y);
             dirs[i] = pb.y - pa.y;
             xs[i] = x_int;
-            if (x_int == -1) continue;
-            ba.x = x_int;
+            if (x_int == INT16_MIN) continue;
+            ba.x = x_int >= 0 ? x_int : 0;
             bitmask_invert(bmask, ba, bb);
         }
 
-        if ((xs[0] == xs[1]) && (xs[0] != -1) && (dirs[0] * dirs[1] >= 0))
+        if ((xs[0] == xs[1]) && (xs[0] != INT16_MIN) && (dirs[0] * dirs[1] >= 0))
         {
             ba.x = xs[0];
             bitmask_invert(bmask, ba, bb);
         }
 
-        if ((xs[0] == xs[2]) && (xs[0] != -1) && (dirs[0] * dirs[2] >= 0))
+        if ((xs[0] == xs[2]) && (xs[0] != INT16_MIN) && (dirs[0] * dirs[2] >= 0))
         {
             ba.x = xs[0];
             bitmask_invert(bmask, ba, bb);
         }
 
-        if ((xs[2] == xs[1]) && (xs[2] != -1) && (dirs[2] * dirs[1] >= 0))
+        if ((xs[2] == xs[1]) && (xs[2] != INT16_MIN) && (dirs[2] * dirs[1] >= 0))
         {
             ba.x = xs[2];
             bitmask_invert(bmask, ba, bb);
@@ -246,7 +245,7 @@ void draw_triangle(scene_t *s, pixel_t *ps)
     bitmask_free(bmask);
 }
 
-void set_pixel(canvas_t *canv, uint32_t x, uint32_t y, rgba_t *color)
+void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color)
 {
     SET_PIXEL(canv, x, y, color);
 }
