@@ -1,6 +1,7 @@
 #include <webassembly.h>
 
 #include "canvas.h"
+#include "math.h"
 
 
 export
@@ -68,14 +69,23 @@ void draw_line(
     int cx, cy;
     rgba_t color;
     point_t point;
-    for (int x = a.x; x <= b.x; x++)
+    for (
+        int x = a.x;
+        x <= min(b.x, (steep ? s->canv->h : s->canv->w) - 1) &&
+        y < (steep ? s->canv->w : s->canv->h);
+        x++)
     {
         cx = steep ? y : x;
         cy = steep ? x : y;
         point.x = cx;
         point.y = cy;
-        color = f_shader(pa, pb, point, s);
-        SET_PIXEL(s->canv, cx, cy, &color);
+
+        if (cx >= 0 && cy >= 0)
+        {
+            color = f_shader(pa, pb, point, s);
+            SET_PIXEL(s->canv, cx, cy, &color);
+        }
+
         err += derr;
         if (2 * err >= dx)
         {
@@ -114,13 +124,14 @@ void draw_triangle(scene_t *s, pixel_t *ps)
     draw_line(s, ps[0], ps[2], NULL);
     draw_line(s, ps[2], ps[1], NULL);
 
-    int min_x = min(min(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x);
-    int min_y = min(min(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y);
+    int min_x = max(0, min(min(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x));
+    int min_y = max(0, min(min(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y));
 
-    int max_x = max(max(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x);
-    int max_y = max(max(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y);
+    int max_x = min(s->canv->w, max(max(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x));
+    int max_y = min(s->canv->h, max(max(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y));
 
     bitmask_t *bmask = bitmask_init(s->canv->w, 1);
+    int canv_width_bit = s->canv->w % 8;
     point_t ba = {0, 0}, bb = {bmask->w * 8, 1};
     point_t pa, pb;
     pixel_t a, b;
@@ -233,4 +244,9 @@ void draw_triangle(scene_t *s, pixel_t *ps)
     }
 
     bitmask_free(bmask);
+}
+
+void set_pixel(canvas_t *canv, uint32_t x, uint32_t y, rgba_t *color)
+{
+    SET_PIXEL(canv, x, y, color);
 }

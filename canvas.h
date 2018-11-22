@@ -48,3 +48,4 @@ canvas_t *canvas_init(int w, int h, rgba_t *data);
 void draw_line(scene_t *s, pixel_t pa, pixel_t pb, f_shader_t f_shader);
 void draw_fragment(scene_t *s, vertex_t *vs);
 void draw_triangle(scene_t *s, pixel_t *ps);
+void set_pixel(canvas_t *canv, uint32_t x, uint32_t y, rgba_t *color);

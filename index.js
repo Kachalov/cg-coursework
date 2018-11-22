@@ -13,7 +13,8 @@ document.getElementById("screen").width = scrcont.clientWidth;
 
 const ctx = document.getElementById('screen').getContext('2d');
 setpixelated(ctx);
-var width = scrcont.clientWidth;
+// TODO (22.11.18): Troubles with bitmask rendering
+var width = scrcont.clientWidth + 8;
 var height = scrcont.clientHeight;
 let image = ctx.createImageData(width, height);
 
