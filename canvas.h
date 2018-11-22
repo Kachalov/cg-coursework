@@ -21,6 +21,12 @@ typedef struct {
 } point_t;
 
 typedef struct {
+    uint8_t *data;
+    uint32_t w;
+    uint32_t h;
+} zbuf_t;
+
+typedef struct {
     rgba_t col;
     point_t pos;
 } pixel_t;

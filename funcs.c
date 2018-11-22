@@ -7,6 +7,7 @@
 #include "models.h"
 #include "canvas.h"
 #include "heap.h"
+#include "scene.h"
 
 #define DOT(c, x, y, p) {\
 SET_PIXEL(c, x, y, p); \
@@ -48,12 +49,35 @@ int max(int a, int b)
 
 // ====================== models.c  ====================== //
 
-canvas_t *canvas_init(int w, int h)
+export
+canvas_t *canvas_init(int w, int h, rgba_t *data)
 {
-    int size = sizeof(canvas_t) + w * h * sizeof(rgba_t);
-    return heap_alloc(size);
+    int size_data = data ? 0 : w * h * sizeof(rgba_t);
+    int size = sizeof(canvas_t) + size_data;
+    canvas_t *r = (canvas_t *)heap_alloc(size);
+
+    r->data = data ? data : (rgba_t *)(r + 1);
+    r->w = w;
+    r->h = h;
+
+    return r;
 }
 
+export
+zbuf_t *zbuf_init(int w, int h, uint8_t *data)
+{
+    int size_data = data ? 0 : w * h * sizeof(uint8_t);
+    int size = sizeof(zbuf_t) + size_data;
+    zbuf_t *r = (zbuf_t *)heap_alloc(size);
+
+    r->data = data ? data : (uint8_t *)(r + 1);
+    r->w = w;
+    r->h = h;
+
+    return r;
+}
+
+export
 bitmask_t *bitmask_init(int w, int h)
 {
     int bw = w / 8 + sign(w % 8);
@@ -61,15 +85,17 @@ bitmask_t *bitmask_init(int w, int h)
     bitmask_t *ptr = heap_alloc(sizeof(bitmask_t) + bw * bh);
     ptr->w = bw;
     ptr->h = bh;
-    ptr->data = (char *)(ptr + 1);
+    ptr->data = (uint8_t *)(ptr + 1);
     return ptr;
 }
 
+export
 void bitmask_free(bitmask_t *ptr)
 {
     heap_free(ptr);
 }
 
+export
 void bitmask_invert(bitmask_t *bmask, point_t a, point_t b)
 {
     int a_byte = a.x / 8;
@@ -78,12 +104,10 @@ void bitmask_invert(bitmask_t *bmask, point_t a, point_t b)
     int b_byte = b.x / 8;
     int b_bit = b.x % 8;
 
-    int a_mask = (uint8_t)((1 << (a_bit + 1)) - 1) & 0xff ^ 0xff;
+    int a_mask = ((uint8_t)((1 << (a_bit + 1)) - 1) & 0xff) ^ 0xff;
     int b_mask = (uint8_t)((1 << (b_bit + 1)) - 1) & 0xff;
 
-    //console_log("inv %u %u b%u e%u", a_mask, b_mask, a_byte, b_byte);
-
-    char *it = bmask->data + bmask->w * a.y;
+    uint8_t *it = bmask->data + bmask->w * a.y;
     for (int j = a.y; j < b.y; j++, it+=bmask->w)
     {
         it[a_byte] ^= a_mask;
@@ -91,11 +115,11 @@ void bitmask_invert(bitmask_t *bmask, point_t a, point_t b)
         for (int i = a_byte + 1; i < b_byte - 1; i++)
         {
             it[i] = ~it[i] & 0xff;
-            //console_log("inv %u", it[i]);
         }
     }
 }
 
+export
 void bitmask_set(bitmask_t *bmask, point_t a, point_t b)
 {
     int a_byte = a.x / 8;
@@ -104,10 +128,10 @@ void bitmask_set(bitmask_t *bmask, point_t a, point_t b)
     int b_byte = b.x / 8;
     int b_bit = b.x % 8;
 
-    int a_mask = (uint8_t)((1 << (a_bit + 1)) - 1) & 0xff ^ 0xff;
+    int a_mask = ((uint8_t)((1 << (a_bit + 1)) - 1) & 0xff) ^ 0xff;
     int b_mask = (uint8_t)((1 << (b_bit + 1)) - 1) & 0xff;
 
-    char *it = bmask->data + bmask->w * a.y;
+    uint8_t *it = bmask->data + bmask->w * a.y;
     for (int j = a.y; j < b.y; j++, it+=bmask->w)
     {
         it[a_byte] |= a_mask;
@@ -119,6 +143,7 @@ void bitmask_set(bitmask_t *bmask, point_t a, point_t b)
     }
 }
 
+export
 void bitmask_unset(bitmask_t *bmask, point_t a, point_t b)
 {
     int a_byte = a.x / 8;
@@ -127,10 +152,10 @@ void bitmask_unset(bitmask_t *bmask, point_t a, point_t b)
     int b_byte = b.x / 8;
     int b_bit = b.x % 8;
 
-    int a_mask = (uint8_t)((1 << (a_bit + 1)) - 1) & 0xff ^ 0xff;
+    int a_mask = ((uint8_t)((1 << (a_bit + 1)) - 1) & 0xff) ^ 0xff;
     int b_mask = (uint8_t)((1 << (b_bit + 1)) - 1) & 0xff;
 
-    char *it = bmask->data + bmask->w * a.y;
+    uint8_t *it = bmask->data + bmask->w * a.y;
     for (int j = a.y; j < b.y; j++, it+=bmask->w)
     {
         it[a_byte] &= a_mask;
@@ -142,6 +167,7 @@ void bitmask_unset(bitmask_t *bmask, point_t a, point_t b)
     }
 }
 
+export
 void log_bitmask_row(bitmask_t *bmask, int row)
 {
     char *str = heap_alloc(bmask->w * 8 + 1);
@@ -149,12 +175,35 @@ void log_bitmask_row(bitmask_t *bmask, int row)
         for (int bit = 0; bit < 8; bit++)
             str[byte * 8 + bit] = bmask->data[bmask->w * row + byte] & (1 << bit) ? '1' : '0';
     str[bmask->w * 8] = 0;
-    //logs(str);
-    //console_log("%s", str);
     heap_free(str);
 }
 
-rgba_t f_shader_inter(pixel_t a, pixel_t b, point_t p)
+export
+scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf)
+{
+    int canv_s = canv ? 0 : sizeof(canvas_t);
+    int zbuf_s = zbuf ? 0 : sizeof(zbuf_t);
+
+    scene_t *s = heap_alloc(sizeof(scene_t));
+    char *after = (char *)(s + 1);
+
+    s->ls = NULL;
+    s->ll = 0;
+
+    s->canv = canvas_init(w, h, canv ? canv : (rgba_t *)(after + canv_s));
+    s->zbuf = zbuf_init(w, h, zbuf ? zbuf : (uint8_t *)(after + canv_s + zbuf_s));
+
+    return s;
+}
+
+export
+void scene_free(scene_t *s)
+{
+    heap_free(s);
+}
+
+export
+rgba_t f_shader_inter(pixel_t a, pixel_t b, point_t p, scene_t *s)
 {
     //float ra, rb, t;
     //ra = sqrt(pow2(p.x - a.pos.x, 2) + pow2(p.y - a.pos.y, 2));
@@ -185,8 +234,8 @@ rgba_t f_shader_inter(pixel_t a, pixel_t b, point_t p)
 
 export
 void draw_line(
-    canvas_t *canv, pixel_t pa, pixel_t pb,
-    rgba_t (*f_shader)(pixel_t, pixel_t, point_t))
+    scene_t *s, pixel_t pa, pixel_t pb,
+    f_shader_t f_shader)
 {
     point_t a = pa.pos;
     point_t b = pb.pos;
@@ -240,8 +289,8 @@ void draw_line(
         cy = steep ? x : y;
         point.x = cx;
         point.y = cy;
-        color = f_shader(pa, pb, point);
-        SET_PIXEL(canv, cx, cy, &color);
+        color = f_shader(pa, pb, point, s);
+        SET_PIXEL(s->canv, cx, cy, &color);
         err += derr;
         if (2 * err >= dx)
         {
@@ -251,11 +300,12 @@ void draw_line(
     }
 }
 
+export
 int find_line_x(point_t a, point_t b, int y)
 {
     if ((a.y <= b.y && (a.y > y || b.y < y)) ||
         (a.y > b.y && (b.y > y || a.y < y)))
-        return UINT16_MAX;
+        return -1;
 
     if (a.y == y)
         return a.x;
@@ -318,48 +368,53 @@ int find_line_x(point_t a, point_t b, int y)
     ///////////
     skip:
 
-    return round(a.x + ((double)((y - a.y) * dx))/dy);
+    return (int)round(a.x + ((double)((y - a.y) * dx))/dy);
+}
+
+export void draw_triangle(scene_t *s, pixel_t *ps);
+export
+void draw_fragment(scene_t *s, vertex_t *vs)
+{
+    static int off = 0;
+    pixel_t p[3];
+    rgba_t c[3] = {
+        {255, (0+125+(int)round(100*cos(1.*off/10)))&0xff, 0, 255-128-(int)round(127*cos(1.*off/50))},
+        {0, 255, (0+125+(int)round(100*cos(1.*off/15 + 10)))&0xff, 255},
+        {(0+125+(int)round(125*sin(1.*off/20)))&0xff, 0, 255, 255}
+    };
+
+    for (int i = 0; i < 3; i++)
+    {
+        p[i].pos.x = vs[i].x;
+        p[i].pos.y = vs[i].y;
+        p[i].col = c[i];
+    }
+
+    draw_triangle(s, p);
+    off++;
 }
 
 export
-void draw_triangle(canvas_t *canv, vertex_t *vs)
+void draw_triangle(scene_t *s, pixel_t *ps)
 {
-    pixel_t a, b;
+    draw_line(s, ps[0], ps[1], NULL);
+    draw_line(s, ps[0], ps[2], NULL);
+    draw_line(s, ps[2], ps[1], NULL);
 
-    rgba_t c1 = {255, 0, 0, 128}, c2 = {0, 255, 0, 128}, c3 = {0, 0, 255, 128};
-
-    a.pos.y = vs[0].y;
-    a.pos.x = vs[0].x;
-    b.pos.y = vs[1].y;
-    b.pos.x = vs[1].x;
-    a.col = c1;
-    b.col = c2;
-    draw_line(canv, a, b, NULL);
-
-    a.pos.y = vs[2].y;
-    a.pos.x = vs[2].x;
-    a.col = c3;
-    draw_line(canv, a, b, NULL);
-
-    b.pos.y = vs[0].y;
-    b.pos.x = vs[0].x;
-    b.col = c1;
-    draw_line(canv, a, b, NULL);
-
-    int min_x = min(min(vs[0].x, vs[1].x), vs[2].x);
-    int min_y = min(min(vs[0].y, vs[1].y), vs[2].y);
+    int min_x = min(min(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x);
+    int min_y = min(min(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y);
     
-    int max_x = max(max(vs[0].x, vs[1].x), vs[2].x);
-    int max_y = max(max(vs[0].y, vs[1].y), vs[2].y);
+    int max_x = max(max(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x);
+    int max_y = max(max(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y);
 
-    bitmask_t *bmask = bitmask_init(canv->w, 1);
+    bitmask_t *bmask = bitmask_init(s->canv->w, 1);
     point_t ba = {0, 0}, bb = {bmask->w * 8, 1};
     point_t pa, pb;
+    pixel_t a, b;
     int x_int;
 
 
     for (int y = min_y; y < max_y; y++)
-    //for (int y = min_y + 60; y < min_y + 65; y++)
     {
         ba.x = 0;
         bitmask_unset(bmask, ba, bb);
@@ -367,47 +422,37 @@ void draw_triangle(canvas_t *canv, vertex_t *vs)
         int xs[3] = {0};
         for (int i = 0; i < 3; i++)
         {
-            pa.x = vs[i].x;
-            pa.y = vs[i].y;
-            pb.x = vs[(i + 1) % 3].x;
-            pb.y = vs[(i + 1) % 3].y;
+            pa.x = ps[i].pos.x;
+            pa.y = ps[i].pos.y;
+            pb.x = ps[(i + 1) % 3].pos.x;
+            pb.y = ps[(i + 1) % 3].pos.y;
 
             x_int = find_line_x(pa, pb, y);
             dirs[i] = pb.y - pa.y;
             xs[i] = x_int;
-            if (x_int == UINT16_MAX) continue;
-            //SET_PIXEL(canv, x_int, y, styles[0]);
-            //DOT(canv, x_int, y, styles[0]);
+            if (x_int == -1) continue;
             ba.x = x_int;
-            //console_log("Y %d X %d i %d", y, x_int, i);
             bitmask_invert(bmask, ba, bb);
         }
 
-        if ((xs[0] == xs[1]) && (xs[0] != UINT16_MAX) && (dirs[0] * dirs[1] >= 0))
+        if ((xs[0] == xs[1]) && (xs[0] != -1) && (dirs[0] * dirs[1] >= 0))
         {
             ba.x = xs[0];
             bitmask_invert(bmask, ba, bb);
-            //console_log("(0 1) %d", dirs[0] * dirs[1]);
         }
 
-        if ((xs[0] == xs[2]) && (xs[0] != UINT16_MAX) && (dirs[0] * dirs[2] >= 0))
+        if ((xs[0] == xs[2]) && (xs[0] != -1) && (dirs[0] * dirs[2] >= 0))
         {
             ba.x = xs[0];
             bitmask_invert(bmask, ba, bb);
-            //console_log("(0 2) %d", dirs[0] * dirs[2]);
         }
 
-        if ((xs[2] == xs[1]) && (xs[2] != UINT16_MAX) && (dirs[2] * dirs[1] >= 0))
+        if ((xs[2] == xs[1]) && (xs[2] != -1) && (dirs[2] * dirs[1] >= 0))
         {
             ba.x = xs[2];
             bitmask_invert(bmask, ba, bb);
-            //console_log("(1 2) %d", dirs[2] * dirs[1]);
         }
 
-        //console_log("%d %d %d", dirs[0], dirs[1], dirs[2]);
-
-
-        //log_bitmask_row(bmask, 0);
 
         int begin = -1;
         int end = -1;
@@ -422,18 +467,14 @@ void draw_triangle(canvas_t *canv, vertex_t *vs)
                     a.pos.x = begin;
                     b.pos.y = y;
                     b.pos.x = end;
-                    a.col = /**(rgba_t *)black;*/*GET_PIXEL(canv, begin - 1, y);
-                    b.col = *GET_PIXEL(canv, end - 1, y);
-                    draw_line(canv, a, b, NULL);
+                    a.col = *GET_PIXEL(s->canv, begin - 1, y);
+                    b.col = *GET_PIXEL(s->canv, end - 1, y);
+                    draw_line(s, a, b, NULL);
                     begin = -1;
                     end = -1;
                 }
                 continue;
             }
-
-            //if (!f)
-            //    console_log("B %d", byte * 8);
-            //f = 1;
 
             if (bmask->data[byte] == 0xff)
             {
@@ -442,17 +483,10 @@ void draw_triangle(canvas_t *canv, vertex_t *vs)
                     begin = byte * 8;
                     end = byte * 8 + 8;
                 }
-
-                for (int bit = 0; bit < 8; bit++)
-                {
-                    //SET_PIXEL(canv, byte * 8 + bit, y, styles[0]);
-                }
             }
             else
             for (int bit = 0; bit < 8; bit++)
             {
-                //if ((bmask->data[byte] & (1 << bit)) == 0) continue;
-                //SET_PIXEL(canv, byte * 8 + bit, y, black);
                 if ((bmask->data[byte] & (1 << bit)) == 0)
                 {
                     if (begin != -1)
@@ -462,17 +496,15 @@ void draw_triangle(canvas_t *canv, vertex_t *vs)
                         a.pos.x = begin;
                         b.pos.y = y;
                         b.pos.x = end;
-                        a.col = /**(rgba_t *)black;*/*GET_PIXEL(canv, begin - 1, y);
-                        b.col = *GET_PIXEL(canv, end - 1, y);
-                        draw_line(canv, a, b, NULL);
-                        //DOT(canv, end, y, styles[0]);
+                        a.col = *GET_PIXEL(s->canv, begin - 1, y);
+                        b.col = *GET_PIXEL(s->canv, end - 1, y);
+                        draw_line(s, a, b, NULL);
                         begin = -1;
                         end = -1;
                     }
                 }
                 else
                 {
-                    //SET_PIXEL(canv, byte * 8 + bit, y, black);
                     if (begin == -1)
                     {
                         begin = byte * 8 + bit;
@@ -484,33 +516,33 @@ void draw_triangle(canvas_t *canv, vertex_t *vs)
                     }
                 }
             }
-            //console_log("%u", bmask->data[byte]);
-
-            /*if (begin != -1 && end != -1 && byte == bmask->w)
-            {
-                a.pos.y = y;
-                a.pos.x = begin;
-                b.pos.y = y;
-                b.pos.x = end;
-                a.col = *GET_PIXEL(canv, begin - 1, y);
-                b.col = *(rgba_t *)black;*GET_PIXEL(canv, end - 1, y);
-                draw_line(canv, a, b, NULL);
-                begin = -1;
-                end = -1;
-            }*/
         }
     }
 
     bitmask_free(bmask);
 }
 
+export void clear(scene_t *s)
+{
+    rgba_t *it = (rgba_t *)s->canv->data;
+
+    for (int i = 0; i < s->canv->h * s->canv->w; i++, it++)
+    {
+        it->a = 0;
+    }
+}
 
 export
-void fillit(int x1, int y1, int x2, int y2)
+void frame(scene_t *s)
 {
-    for (int x = x1; x <= x2; x++)
-        for (int y = y1; y <= y2; y++)
-            if ((x + y) % 2 == 0) fillRect(x, y, 1, 1);
+    static int off = 0;
+    vertex_t vs[3];
+    vs[0].x=200 + round(99*cos((1.3*off) * 3.14/180)); vs[0].y=100 + round(10*cos((4*off) * 3.14/180)); vs[0].z=0;
+    vs[1].x=400 + round(199*sin((-off) * 3.14/180)); vs[1].y=500 + round(15*cos((-2*off) * 3.14/180)); vs[1].z=0;
+    vs[2].x=700 + round(300*cos((off) * 3.14/180)); vs[2].y=450 - round(100*cos((1.3*off) * 3.14/180)); vs[2].z=0;
+
+    draw_fragment(s, vs);
+    off++;
 }
 
 export
@@ -534,7 +566,7 @@ void bufdraw(char *buf, int w, int h)
             //for (int k = 0; k < 3; k++)
 
             //    it[k] = styles[(i+j+off) % (sizeof(styles)/sizeof(styles)[0])][k];
-            it[3] = (x+y+off) % (2+y) == 0 ? 255: 0;
+            it[3] = (x+y+off) % (2+y) == 0 ? 0xff: 0;
         }
     off++;
 
@@ -552,11 +584,11 @@ void bufdraw(char *buf, int w, int h)
         DOT(&canvas, x, y3, styles[2]);
     }
 
-    draw_triangle(&canvas, vs);
+    //draw_fragment(&canvas, vs);
     vs[1].x=800 - round(70*sin((-off) * 3.14/180)); vs[1].y=300 + round(15*cos((2*off) * 3.14/180)); vs[1].z=0;
-    draw_triangle(&canvas, vs);
+    //draw_fragment(&canvas, vs);
     vs[2].x=900 + round(20*cos((off) * 3.14/180)); vs[2].y=100 - round(30*cos((1.3*off) * 3.14/180)); vs[2].z=0;
-    draw_triangle(&canvas, vs);
+    //draw_fragment(&canvas, vs);
 }
 
 // ====================== heap.c  ====================== //
