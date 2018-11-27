@@ -4,6 +4,7 @@
 
 #include "canvas.h"
 #include "scene.h"
+#include "shaders.h"
 
 typedef struct v3_st {
     float x;
@@ -42,18 +43,36 @@ typedef struct {
     uint32_t l;
 } vertices_t;
 
-typedef vertices_t face_t;
+typedef struct face_st {
+    uint32_t *d; // IDs
+    uint32_t l;
+} face_t;
+
 typedef vertices_t line_t;
 
-typedef struct {
-    normal_t *ns;
-    vertices_t *vs;
-    face_t *fs;
-    uint32_t nl;
-    uint32_t vl;
-    uint32_t fl;
-    rgba_t color;
-} obj_t;
+typedef struct mat_st {
+    rgba_t ambient;
+    rgba_t diffuse;
+    rgba_t specular;
+} mat_t;
 
+typedef struct model_props_st {
+    shaders_t shaders;
+    mat_t mat;
+} model_props_t;
 
-obj_t obj_init();
+typedef struct model_st {
+    vertices_t vs;
+    struct {
+        normal_t *d;
+        uint32_t l;
+    } ns;
+    struct {
+        face_t *d;
+        uint32_t l;
+    } fs;
+    // TODO: lines
+    model_props_t props;
+} model_t;
+
+model_t *model_init(int v, int n, int f);

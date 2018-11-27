@@ -4,11 +4,13 @@
 
 #include "scene.h"
 
+typedef struct point_st point_t;
 
-#define BITMASK_CHUNK_SIZE 16
-#define BITMASK_CHUNK_MASK 0xffff
 
-typedef uint16_t bitmask_data_t;
+#define BITMASK_CHUNK_SIZE 8
+#define BITMASK_CHUNK_MASK 0xff
+
+typedef uint8_t bitmask_data_t;
 
 typedef struct {
     bitmask_data_t *data;

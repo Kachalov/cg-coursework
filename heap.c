@@ -18,3 +18,9 @@ void heap_free(void *ptr)
 {
     free(ptr);
 }
+
+export
+void *heap_realloc(void *ptr, int size)
+{
+    return realloc(ptr, size);
+}

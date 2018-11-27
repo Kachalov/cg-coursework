@@ -2,6 +2,9 @@
 
 #include "canvas.h"
 #include "math.h"
+#include "shaders.h"
+#include "heap.h"
+#include "render.h"
 
 
 export
@@ -19,13 +22,8 @@ canvas_t *canvas_init(int w, int h, rgba_t *data)
 }
 
 export
-void draw_line(
-    scene_t *s, pixel_t pa, pixel_t pb,
-    f_shader_t f_shader)
+void draw_line(scene_t *s, point_t a, point_t b, void *shf, mat_t *mat)
 {
-    point_t a = pa.pos;
-    point_t b = pb.pos;
-
     int dx = abs(a.x - b.x);
     int dy = abs(a.y - b.y);
     int steep = dy > dx;
@@ -50,10 +48,6 @@ void draw_line(
         a = b;
         b = tmp;
 
-        pixel_t tmpp = pa;
-        pa = pb;
-        pb = tmpp;
-
         dx = abs(a.x - b.x);
         dy = abs(a.y - b.y);
     }
@@ -63,12 +57,10 @@ void draw_line(
     int y = a.y;
     int sy = sign(b.y - a.y);
 
-    if (!f_shader)
-        f_shader = f_shader_inter;
-
     int cx, cy;
-    rgba_t color;
-    point_t point;
+    pixel_t pix;
+    evertex_t v;
+
     for (
         int x = a.x;
         x <= min(b.x, (steep ? s->canv->h : s->canv->w) - 1) &&
@@ -77,13 +69,18 @@ void draw_line(
     {
         cx = steep ? y : x;
         cy = steep ? x : y;
-        point.x = cx;
-        point.y = cy;
+        v.v.x = cx;
+        v.v.y = cy;
+        v.v.z = 0;
+        v.n.x = 0;
+        v.n.y = 0;
+        v.n.z = 0;
+        v.c = mat->ambient;
 
         if (cx >= 0 && cy >= 0)
         {
-            color = f_shader(pa, pb, point, s);
-            SET_PIXEL(s->canv, cx, cy, &color);
+            pix = ((shader_f_t)shf)(v, mat, s);
+            SET_PIXEL(s->canv, pix.pos.x, pix.pos.y, &pix.col);
         }
 
         err += derr;
@@ -91,160 +88,6 @@ void draw_line(
         {
             y += sy;
             err -= dx;
-        }
-    }
-}
-
-export
-void draw_fragment(scene_t *s, vertex_t *vs)
-{
-    static int off = 0;
-    pixel_t p[3];
-    rgba_t c[3] = {
-        {255, (0+125+(int)round(100*cos(1.*off/10)))&0xff, 0, 255-128-(int)round(127*cos(1.*off/50))},
-        {0, 255, (0+125+(int)round(100*cos(1.*off/15 + 10)))&0xff, 255},
-        {(0+125+(int)round(125*sin(1.*off/20)))&0xff, 0, 255, 255}
-    };
-
-    for (int i = 0; i < 3; i++)
-    {
-        p[i].pos.x = vs[i].x;
-        p[i].pos.y = vs[i].y;
-        p[i].col = c[i];
-    }
-
-    draw_triangle(s, p);
-    off++;
-}
-
-export
-void draw_triangle(scene_t *s, pixel_t *ps)
-{
-    draw_line(s, ps[0], ps[1], NULL);
-    draw_line(s, ps[0], ps[2], NULL);
-    draw_line(s, ps[2], ps[1], NULL);
-
-    int min_x = max(0, min(min(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x));
-    int min_y = max(0, min(min(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y));
-
-    int max_x = min(s->canv->w, max(max(ps[0].pos.x, ps[1].pos.x), ps[2].pos.x));
-    int max_y = min(s->canv->h, max(max(ps[0].pos.y, ps[1].pos.y), ps[2].pos.y));
-
-    bitmask_t *bmask = s->bmask_row;
-    point_t ba = {0, 0}, bb = {bmask->w * BITMASK_CHUNK_SIZE, 1};
-    point_t pa, pb;
-    pixel_t a, b;
-    int x_int;
-
-    int next = 0;
-    for (int y = min_y; y < max_y; y++)
-    {
-        next = 0;
-        ba.x = 0;
-        bitmask_unset(bmask, ba, bb);
-        int dirs[3] = {0};
-        int xs[3] = {0};
-        for (int i = 0; i < 3; i++)
-        {
-            pa.x = ps[i].pos.x;
-            pa.y = ps[i].pos.y;
-            pb.x = ps[(i + 1) % 3].pos.x;
-            pb.y = ps[(i + 1) % 3].pos.y;
-
-            x_int = find_line_x(pa, pb, y);
-            dirs[i] = pb.y - pa.y;
-            xs[i] = x_int;
-            if (x_int == INT16_MIN) continue;
-            ba.x = x_int >= 0 ? x_int : 0;
-            bitmask_invert(bmask, ba, bb);
-        }
-
-        if ((xs[0] == xs[1]) && (xs[0] != INT16_MIN) && (dirs[0] * dirs[1] >= 0))
-        {
-            ba.x = xs[0];
-            bitmask_invert(bmask, ba, bb);
-        }
-
-        if ((xs[0] == xs[2]) && (xs[0] != INT16_MIN) && (dirs[0] * dirs[2] >= 0))
-        {
-            ba.x = xs[0];
-            bitmask_invert(bmask, ba, bb);
-        }
-
-        if ((xs[2] == xs[1]) && (xs[2] != INT16_MIN) && (dirs[2] * dirs[1] >= 0))
-        {
-            ba.x = xs[2];
-            bitmask_invert(bmask, ba, bb);
-        }
-
-
-        int begin = -1;
-        int end = -1;
-        for (int byte = 0; byte < bmask->w; byte++)
-        {
-            if (bmask->data[byte] == 0)
-            {
-                if (begin != -1)
-                {
-                    end = byte * BITMASK_CHUNK_SIZE;
-                    a.pos.y = y;
-                    a.pos.x = begin;
-                    b.pos.y = y;
-                    b.pos.x = end;
-                    a.col = *GET_PIXEL(s->canv, begin - 1, y);
-                    b.col = *GET_PIXEL(s->canv, end - 1, y);
-                    draw_line(s, a, b, NULL);
-                    begin = -1;
-                    end = -1;
-                    next = 1;
-                }
-                continue;
-            }
-
-            if (bmask->data[byte] == BITMASK_CHUNK_MASK)
-            {
-                if (begin == -1)
-                {
-                    begin = byte * BITMASK_CHUNK_SIZE;
-                    end = (byte + 1) * BITMASK_CHUNK_SIZE;
-                }
-            }
-            else
-            for (int bit = 0; bit < BITMASK_CHUNK_SIZE; bit++)
-            {
-                if ((bmask->data[byte] & (1 << bit)) == 0)
-                {
-                    if (begin != -1)
-                    {
-                        end = byte * BITMASK_CHUNK_SIZE + bit;
-                        a.pos.y = y;
-                        a.pos.x = begin;
-                        b.pos.y = y;
-                        b.pos.x = end;
-                        a.col = *GET_PIXEL(s->canv, begin - 1, y);
-                        b.col = *GET_PIXEL(s->canv, end - 1, y);
-                        draw_line(s, a, b, NULL);
-                        begin = -1;
-                        end = -1;
-                        next = 1;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (begin == -1)
-                    {
-                        begin = byte * BITMASK_CHUNK_SIZE + bit;
-                        end = byte * BITMASK_CHUNK_SIZE + bit;
-                    }
-                    else
-                    {
-                        end = byte * BITMASK_CHUNK_SIZE + bit;
-                    }
-                }
-            }
-
-            if (next) break;
         }
     }
 }

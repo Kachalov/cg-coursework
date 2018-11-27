@@ -1,7 +1,26 @@
 #include <webassembly.h>
 
 #include "scene.h"
+#include "models.h"
+#include "render.h"
 
+
+// TODO (27.11.18): Remove test part
+pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
+{
+    pixel_t r;
+
+    r.col.r = a.c.r; //(10*lroundf(a.v.x/10.)) % 255;
+    r.col.g = a.c.g;
+    r.col.b = a.c.b;
+    r.col.a = a.c.a;
+
+    r.pos.x = a.v.x;
+    r.pos.y = a.v.y;
+
+    return r;
+}
+// End of test part
 
 export
 scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf)
@@ -12,15 +31,71 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf)
     scene_t *s = heap_alloc(sizeof(scene_t));
     char *after = (char *)(s + 1);
 
-    s->ls = NULL;
-    s->ll = 0;
-
     s->canv = canvas_init(w, h, canv ? canv : (rgba_t *)(after + canv_s));
     s->zbuf = zbuf_init(w, h, zbuf ? zbuf : (uint8_t *)(after + canv_s + zbuf_s));
 
     s->bmask_row = bitmask_init(w, 1);
 
+    s->ls.d = 0;
+    s->ls.l = 0;
+
+    s->cams.d = 0;
+    s->cams.l = 0;
+    s->cams.cur = 0;
+
+    s->models.d = 0;
+    s->models.l = 0;
+
+    // TODO (27.11.18): Remove test part
+    model_t *m = model_init(3, 3, 1);
+    m->vs.d[0].x=100;
+    m->vs.d[0].y=100;
+    m->vs.d[0].z=0;
+
+    m->vs.d[1].x=100;
+    m->vs.d[1].y=200;
+    m->vs.d[1].z=100;
+
+    m->vs.d[2].x=300;
+    m->vs.d[2].y=200;
+    m->vs.d[2].z=-100;
+
+    m->fs.d[0].d = heap_alloc(sizeof (uint32_t) * 3);
+    m->fs.d[0].l = 0;
+
+    m->fs.d[0].d[0] = 0;
+    m->fs.d[0].d[1] = 1;
+    m->fs.d[0].d[2] = 2;
+
+    m->props.mat.ambient.r = 0;
+    m->props.mat.ambient.g = 0;
+    m->props.mat.ambient.b = 0;
+    m->props.mat.ambient.a = 255;
+
+    m->props.shaders.f = test_shader_f;
+    m->props.shaders.v = 0;
+
+    scene_add_model(s, m);
+    // End of test part
+
+    scene = s;
     return s;
+}
+
+export
+int scene_add_model(scene_t *s, model_t *model)
+{
+    int so = s->models.l;
+    int sn = s->models.l + 1;
+    model_t **ptr = heap_realloc(s->models.d, sizeof(model_t *) * sn);
+    if (!ptr)
+        return -1;
+
+    s->models.d = ptr;
+    s->models.l = sn;
+    s->models.d[so] = model;
+
+    return so;
 }
 
 export
@@ -52,83 +127,4 @@ export void clear(scene_t *s)
     {
         it->a = 0;
     }
-}
-
-export
-void frame(scene_t *s)
-{
-    static int off = 0;
-    vertex_t vs[3];
-    vs[0].x=200 + round(99*cos((1.3*off) * 3.14/180)); vs[0].y=100 + round(10*cos((4*off) * 3.14/180)); vs[0].z=0;
-    vs[1].x=400 + round(199*sin((-off) * 3.14/180)); vs[1].y=500 + round(15*cos((-2*off) * 3.14/180)); vs[1].z=0;
-    vs[2].x=700 + round(300*cos((off) * 3.14/180)); vs[2].y=450 - round(100*cos((1.3*off) * 3.14/180)); vs[2].z=0;
-
-    draw_fragment(s, vs);
-    off++;
-}
-
-export
-int16_t find_line_x(point_t a, point_t b, int16_t y)
-{
-    if ((a.y <= b.y && (a.y > y || b.y < y)) ||
-        (a.y > b.y && (b.y > y || a.y < y)))
-        return INT16_MIN;
-
-    if (a.y == y)
-        return a.x;
-
-    if (b.y == y)
-        return b.x;
-
-    int dx = b.x - a.x;
-    int dy = b.y - a.y;
-
-    if (dx == 0)
-        return min(a.x, b.x);
-
-    dx = abs(a.x - b.x);
-    dy = abs(a.y - b.y);
-    int steep = dy > dx;
-
-    if (steep)
-    {
-        int tmp = a.x;
-        a.x = a.y;
-        a.y = tmp;
-
-        tmp = b.x;
-        b.x = b.y;
-        b.y = tmp;
-
-        dx = abs(a.x - b.x);
-        dy = abs(a.y - b.y);
-    }
-
-    if (a.x > b.x)
-    {
-        point_t tmp = a;
-        a = b;
-        b = tmp;
-
-        dx = abs(a.x - b.x);
-        dy = abs(a.y - b.y);
-    }
-
-    int err = 0;
-    int derr = dy;
-    int yi = a.y;
-    int sy = sign(b.y - a.y);
-
-    for (int x = a.x; x <= b.x; x++)
-    {
-        if ((steep && x == y) || (!steep && yi == y)) return steep ? yi : x;
-        err += derr;
-        if (2 * err >= dx)
-        {
-            yi += sy;
-            err -= dx;
-        }
-    }
-
-    return (int)round(a.x + ((double)((y - a.y) * dx))/dy);
 }

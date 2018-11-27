@@ -16,6 +16,11 @@ int int_inter(int a, int b, float t)
     return (b - a) * t + a;
 }
 
+float float_inter(float a, float b, float t)
+{
+    return (b - a) * t + a;
+}
+
 int min(int a, int b)
 {
     return a < b ? a : b;

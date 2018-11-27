@@ -54,7 +54,7 @@ webassembly
     var maxFps = 60;
     var delay = 0;
     var lastStatFps = maxFps;
-    (function frame() {
+    function frame() {
         //ctx.clearRect(0, 0, scrcont.clientHeight, scrcont.clientWidth);
         //setInterval(1000);
         /*for (var j = 0; j < scr бесcont.clientHeight; j++) {
@@ -65,7 +65,6 @@ webassembly
         i = ++i % styles.length;*/
         try {
             var start = new Date().getTime();
-            //exports.bufdraw(pointer, width, height);
             exports.frame(scene);
             if (!usub.byteLength)
             {
@@ -120,7 +119,8 @@ webassembly
         setTimeout(function () {requestAnimationFrame(frame);}, delay);
         else
         requestAnimationFrame(frame);
-    })();
+    };
+    frame();
     /*var ptr = module.mem.U8[24];
     alert(exports.point(ptr, 10));
     alert(exports.point_init(ptr, 1, 2, 3));

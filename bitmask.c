@@ -25,6 +25,9 @@ void bitmask_free(bitmask_t *ptr)
 export
 void bitmask_invert(bitmask_t *bmask, point_t a, point_t b)
 {
+    a.x = max(0, min(bmask->w * BITMASK_CHUNK_SIZE, a.x));
+    a.y = max(0, min(bmask->h, a.y));
+
     int a_byte = a.x / BITMASK_CHUNK_SIZE;
     int a_bit = a.x % BITMASK_CHUNK_SIZE;
 
@@ -49,6 +52,9 @@ void bitmask_invert(bitmask_t *bmask, point_t a, point_t b)
 export
 void bitmask_set(bitmask_t *bmask, point_t a, point_t b)
 {
+    a.x = max(0, min(bmask->w * BITMASK_CHUNK_SIZE, a.x));
+    a.y = max(0, min(bmask->h, a.y));
+
     int a_byte = a.x / BITMASK_CHUNK_SIZE;
     int a_bit = a.x % BITMASK_CHUNK_SIZE;
 
@@ -73,6 +79,9 @@ void bitmask_set(bitmask_t *bmask, point_t a, point_t b)
 export
 void bitmask_unset(bitmask_t *bmask, point_t a, point_t b)
 {
+    a.x = max(0, min(bmask->w * BITMASK_CHUNK_SIZE, a.x));
+    a.y = max(0, min(bmask->h, a.y));
+
     int a_byte = a.x / BITMASK_CHUNK_SIZE;
     int a_bit = a.x % BITMASK_CHUNK_SIZE;
 
@@ -89,7 +98,8 @@ void bitmask_unset(bitmask_t *bmask, point_t a, point_t b)
         it[b_byte] &= ~b_mask;
         for (int i = a_byte + 1; i < b_byte - 1; i++)
         {
-            it[i] ^= it[i];
+            // TODO (25.11.2018): Some shitty magic with RAM happens here
+            it[i] = 0;
         }
     }
 }

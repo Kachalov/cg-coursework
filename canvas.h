@@ -3,7 +3,7 @@
 #include <inttypes.h>
 
 typedef struct scene_st scene_t;
-typedef struct v3_st vertex_t;
+typedef struct mat_st mat_t;
 
 
 typedef struct rgba_st {
@@ -44,8 +44,9 @@ SET_PIXEL(c, x+1, y, p); \
 SET_PIXEL(c, x, y+1, p); \
 SET_PIXEL(c, x+1, y+1, p); }
 
+export
 canvas_t *canvas_init(int w, int h, rgba_t *data);
-void draw_line(scene_t *s, pixel_t pa, pixel_t pb, f_shader_t f_shader);
-void draw_fragment(scene_t *s, vertex_t *vs);
-void draw_triangle(scene_t *s, pixel_t *ps);
+export
+void draw_line(scene_t *s, point_t a, point_t b, void *shf, mat_t *mat);
+export
 void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color);
