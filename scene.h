@@ -17,7 +17,21 @@ typedef struct {
     uint32_t h;
 } zbuf_t;
 
-typedef v3_t light_t;
+typedef struct light_attens_st {
+    float c;
+    float l;
+    float q;
+} light_attens_t;
+
+typedef struct light_st {
+    v3_t pos;
+    light_attens_t attens;
+    struct {
+        rgba_t ambient;
+        rgba_t diffuse;
+        rgba_t specular;
+    } cols;
+} light_t;
 
 typedef struct scene_st {
     canvas_t *canv;
@@ -27,15 +41,18 @@ typedef struct scene_st {
         light_t *d;
         uint32_t l;
     } ls;
-    struct {
+    /*struct {
         void *d;
         uint8_t l;
         uint8_t cur;
-    } cams;
+    } viewports;*/
+    m4_t viewport;
     struct {
         model_t **d;
         uint8_t l;
     } models;
+    m4_t view_mtrx;
+    m4_t proj_mtrx;
 } scene_t;
 
 scene_t *scene;

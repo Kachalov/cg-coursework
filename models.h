@@ -5,47 +5,26 @@
 #include "canvas.h"
 #include "scene.h"
 #include "shaders.h"
+#include "math.h"
 
-typedef struct v3_st {
-    float x;
-    float y;
-    float z;
-} v3_t;
-
-typedef struct v4_st {
-    float x;
-    float y;
-    float z;
-    float w;
-} v4_t;
-
-typedef struct m3x3_st {
-    v3_t d[3];
-} m3x3_t;
-
-typedef struct m3x4_st {
-    v4_t d[3];
-} m3x4_t;
-
-typedef struct m4x3_st {
-    v3_t d[4];
-} m4x3_t;
-
-typedef struct m4x4_st {
-    v4_t d[4];
-} m4x4_t;
 
 typedef v3_t vertex_t;
 typedef v3_t normal_t;
 
+typedef uint32_t vertexid_t;
+typedef uint32_t normalid_t;
+
 typedef struct {
     vertex_t *d;
     uint32_t l;
+    uint32_t alloc;
 } vertices_t;
 
 typedef struct face_st {
-    uint32_t *d; // IDs
+    vertexid_t *v; // IDs
+    normalid_t *n; // IDs
     uint32_t l;
+    uint32_t alloc;
 } face_t;
 
 typedef vertices_t line_t;
@@ -66,13 +45,18 @@ typedef struct model_st {
     struct {
         normal_t *d;
         uint32_t l;
+        uint32_t alloc;
     } ns;
     struct {
         face_t *d;
         uint32_t l;
+        uint32_t alloc;
     } fs;
     // TODO: lines
     model_props_t props;
 } model_t;
 
-model_t *model_init(int v, int n, int f);
+model_t *model_init(model_t *m, int v, int n, int f);
+model_t *model_add_vertices_arr(model_t *m, vertex_t *vs, int n);
+model_t *model_add_face_arr(model_t *m, vertexid_t *vs, normalid_t *ns, int n);
+face_t model_face_static_init(int n);

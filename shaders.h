@@ -7,7 +7,7 @@ typedef struct mat_st mat_t;
 typedef struct evertex_st evertex_t;
 
 
-typedef evertex_t (*shader_v_t)(const evertex_t a, scene_t *s);
+typedef evertex_t (*shader_v_t)(const evertex_t *vs, int i, scene_t *s);
 typedef pixel_t (*shader_f_t)(const evertex_t a, const mat_t *mat, scene_t *s);
 
 typedef struct shaders_st {

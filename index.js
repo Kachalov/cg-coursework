@@ -113,7 +113,7 @@ webassembly
 
         }
 
-        //return;
+        return;
         //requestAnimationFrame(frame);
         if (delay > 0)
         setTimeout(function () {requestAnimationFrame(frame);}, delay);

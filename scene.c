@@ -1,8 +1,11 @@
 #include <webassembly.h>
+#include <math.h>
 
 #include "scene.h"
 #include "models.h"
 #include "render.h"
+#include "math.h"
+#include "utils.h"
 
 
 // TODO (27.11.18): Remove test part
@@ -17,6 +20,67 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 
     r.pos.x = a.v.x;
     r.pos.y = a.v.y;
+
+    evertex_t wa = viewport2world(a, s);
+
+    model_t **modeli;
+    model_t *model;
+    face_t *face;
+    evertex_t vs[3];
+    float atten, attens = 0;
+
+    modeli = s->models.d;
+    for (int i = 0; i < s->models.l; i++, modeli++)
+    {
+        model = *modeli;
+        face = model->fs.d;
+        for (int i = 0; i < model->fs.l; i++, face++)
+        {
+            if (face->l == 3)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    vs[i].v = model->vs.d[face->v[i]];
+                    if (face->n[i] != -1)
+                        vs[i].n = model->ns.d[face->n[i]];
+                    vs[i] = world2viewport(vs[i], s);
+                }
+
+                for (int i = 0; i < s->ls.l; i++)
+                {
+                    v3_t dir = v3_sub(s->ls.d[i].pos, wa.v);
+                    float d = sqrt(v3_dot(dir, dir));
+                    float ind = intersect_triangle(wa.v, dir, vs[0].v, vs[1].v, vs[2].v);
+                    if (ind == -1 || ind < 1 || d < ind)
+                    {
+                        atten = 1 / (s->ls.d[i].attens.c +
+                        s->ls.d[i].attens.l * d +
+                        s->ls.d[i].attens.q * d * d);
+
+                        dir = v3_norm(dir);
+                        float alpha = v3_dot(dir, (v3_t){0, 0, -1});
+                        alpha = alpha < 0 ? 0 : alpha;
+                        attens += atten * alpha;
+                    }
+                }
+            }
+            else
+            {
+                // TODO (15.11.2018): yield_face_triangle
+            }
+        }
+    }
+
+    r.col = rgba_scale3(r.col, attens > 1 ? 1 : attens);
+
+    return r;
+}
+
+evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
+{
+    evertex_t r = vs[i];
+
+    r.c = (rgba_t){255 * (i == 0), 255 * (i == 1), 255 * (i == 2), 255};
 
     return r;
 }
@@ -39,33 +103,65 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf)
     s->ls.d = 0;
     s->ls.l = 0;
 
-    s->cams.d = 0;
+    /*s->cams.d = 0;
     s->cams.l = 0;
-    s->cams.cur = 0;
+    s->cams.cur = 0;*/
 
     s->models.d = 0;
     s->models.l = 0;
 
+    s->view_mtrx = make_viewport((v3_t){-2, -3, 2}, (v3_t){0, 0, 0}, (v3_t){0, 0, 1});
+    s->proj_mtrx = make_perspective(45, s->canv->w / s->canv->h, 0.1, 100);
+
     // TODO (27.11.18): Remove test part
-    model_t *m = model_init(3, 3, 1);
-    m->vs.d[0].x=100;
-    m->vs.d[0].y=100;
-    m->vs.d[0].z=0;
+    {m4_t m = s->view_mtrx;
+    console_log("|%lf %lf %lf %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
+    console_log("|%lf %lf %lf %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
+    console_log("|%lf %lf %lf %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
+    console_log("|%lf %lf %lf %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
 
-    m->vs.d[1].x=100;
-    m->vs.d[1].y=200;
-    m->vs.d[1].z=100;
+    {m4_t m = s->proj_mtrx;
+    console_log("|%lf %lf %lf %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
+    console_log("|%lf %lf %lf %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
+    console_log("|%lf %lf %lf %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
+    console_log("|%lf %lf %lf %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
 
-    m->vs.d[2].x=300;
-    m->vs.d[2].y=200;
-    m->vs.d[2].z=-100;
+    model_t *m = model_init(NULL, 1000, 1000, 1000);
 
-    m->fs.d[0].d = heap_alloc(sizeof (uint32_t) * 3);
-    m->fs.d[0].l = 0;
+    vertex_t vs[] = {
+        {100, 100, 100},
+        {100, 200, 100},
+        {200, 200, 100},
+        {200, 100, 100},
 
-    m->fs.d[0].d[0] = 0;
-    m->fs.d[0].d[1] = 1;
-    m->fs.d[0].d[2] = 2;
+        {100, 100, 200},
+        {100, 200, 200},
+        {200, 200, 200},
+        {200, 100, 200}
+    };
+    m = model_add_vertices_arr(m, vs, 8);
+
+    normalid_t nid[] = {-1, -1, -1};
+    vertexid_t vid[3] = {0, 1, 2};
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){2, 3, 0}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+
+    memcpy(vid, &((vertexid_t[3]){4, 5, 6}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){6, 7, 4}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+
+
+    memcpy(vid, &((vertexid_t[3]){0, 1, 5}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){5, 4, 0}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+
+    memcpy(vid, &((vertexid_t[3]){2, 3, 6}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){6, 7, 2}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
 
     m->props.mat.ambient.r = 0;
     m->props.mat.ambient.g = 0;
@@ -73,9 +169,25 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf)
     m->props.mat.ambient.a = 255;
 
     m->props.shaders.f = test_shader_f;
-    m->props.shaders.v = 0;
+    m->props.shaders.v = test_shader_v;
 
     scene_add_model(s, m);
+
+    s->ls.d = heap_alloc(sizeof (light_t) * 2);
+    s->ls.l = 2;
+
+    s->ls.d[0].pos = (v3_t){200, 200, -100};
+    s->ls.d[0].attens = (light_attens_t){1, 0.0001, 0};
+    s->ls.d[0].cols.ambient = (rgba_t){255, 255, 255, 255};
+    s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
+    s->ls.d[0].cols.specular = (rgba_t){255, 255, 255, 255};
+
+    s->ls.d[1].pos = (v3_t){100, 400, -50};
+    s->ls.d[1].attens = (light_attens_t){1, 0.00001, 0};
+    s->ls.d[1].cols.ambient = (rgba_t){255, 255, 255, 255};
+    s->ls.d[1].cols.diffuse = (rgba_t){255, 255, 255, 255};
+    s->ls.d[1].cols.specular = (rgba_t){255, 255, 255, 255};
+
     // End of test part
 
     scene = s;

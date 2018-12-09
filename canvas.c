@@ -96,3 +96,13 @@ void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color)
 {
     SET_PIXEL(canv, x, y, color);
 }
+
+rgba_t rgba_scale3(rgba_t a, float k)
+{
+    return (rgba_t){
+        a.r * k,
+        a.g * k,
+        a.b * k,
+        a.a
+    };
+}
