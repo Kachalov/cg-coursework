@@ -65,7 +65,13 @@ webassembly
         i = ++i % styles.length;*/
         try {
             var start = new Date().getTime();
+
+            try {
             exports.frame(scene);
+            } catch (e) {
+                alert(e);
+            }
+
             if (!usub.byteLength)
             {
                 usub = new Uint8ClampedArray(module.memory.buffer, pointer, byteSize);

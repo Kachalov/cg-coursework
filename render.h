@@ -9,8 +9,8 @@
 
 typedef struct evertex_st {
     vertex_t v;
-    rgba_t c;
     v3_t n;
+    rgba_t c;
     rgba_t light;
 } evertex_t;
 

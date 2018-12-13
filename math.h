@@ -47,4 +47,5 @@ float v3_dot(v3_t a, v3_t b);
 
 int mtrx_mul(float *res, float *a, int am, int an, float *b, int bm, int bn);
 m3_t m3_m3_mul(m3_t *a, m3_t *b);
+m4_t m4_m4_mul(m4_t *a, m4_t *b);
 v3_t m4_v3t_mul(m4_t *m, v3_t *v);

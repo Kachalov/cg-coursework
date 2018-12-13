@@ -67,16 +67,15 @@ int mtrx_mul(float *res, float *a, int am, int an, float *b, int bm, int bn)
     if (an != bm)
         return EOOM;
 
-    float sum;
+    for (int i = 0; i < am * bn; i++)
+        res[i] = 0;
+
+    float *resit = res;
 
     for (int i = 0; i < am; i++)
-        for (int j = 0; j < bn; j++)
-        {
-            sum = 0;
+        for (int j = 0; j < bn; j++, resit++)
             for (int k = 0; k < an; k++)
-                sum += a[i * am + k] * b[k * an + j];
-            res[i * bm + j] = sum;
-        }
+                *resit += a[i * an + k] * b[k * bn + j];
 
     return EOK;
 }
@@ -88,12 +87,19 @@ m3_t m3_m3_mul(m3_t *a, m3_t *b)
     return m;
 }
 
+m4_t m4_m4_mul(m4_t *a, m4_t *b)
+{
+    m4_t m;
+    mtrx_mul((float *)&m, (float *)a, 4, 4, (float *)b, 4, 4);
+    return m;
+}
+
 v3_t m4_v3t_mul(m4_t *m, v3_t *v)
 {
     v3_t r;
     v4_t v4, r4;
     memcpy(&v4, v, sizeof(v3_t));
-    v4.w = 1;
+    v4.w = 0;
 
     mtrx_mul((float *)(&r4), (float *)m, 4, 4, (float *)(&v4), 4, 1);
     memcpy(&r, &r4, sizeof(v3_t));

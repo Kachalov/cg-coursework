@@ -151,7 +151,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     //ya.dev.v.y = 1;
     //yb.dev.v.y = 1;
 
-    ya.evc.r = 255;
+    /*ya.evc.r = 255;
     ya.evc.g = 0;
     ya.evc.b = 0;
     ya.evc.a = 255;
@@ -160,7 +160,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     yb.evc.g = 0;
     yb.evc.b = 0;
     yb.evc.a = 255;
-    yb.devc.r = yb.devc.g = yb.devc.b = yb.devc.a = 0;
+    yb.devc.r = yb.devc.g = yb.devc.b = yb.devc.a = 0;*/
     /*console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
     console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);*/
 
@@ -176,19 +176,19 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     //ya.t = ytmp.t;
     //ya.d = ytmp.d;
     //ya.ev = ytmp.ev;
-    ya.evc = ytmp.evc;
+    //ya.evc = ytmp.evc;
 
     ytmp = yb;
     yb = yield_evertex_init(vs[0], vs[2], vs[2].v.y - vs[0].v.y);
     //yb.t = ytmp.t;
     //yb.d = ytmp.d;
     //yb.ev = ytmp.ev;
-    yb.evc = ytmp.evc;
+    //yb.evc = ytmp.evc;
 
     //ya.dev.v.y = -1;
     //yb.dev.v.y = -1;
 
-    ya.evc.r = 0;
+    /*ya.evc.r = 0;
     ya.evc.g = 255;
     ya.evc.b = 0;
     ya.evc.a = 255;
@@ -197,7 +197,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     yb.evc.g = 255;
     yb.evc.b = 0;
     yb.evc.a = 255;
-    yb.devc.r = yb.devc.g = yb.devc.b = yb.devc.a = 0;
+    yb.devc.r = yb.devc.g = yb.devc.b = yb.devc.a = 0;*/
     /*console_log("X %lf %lf %lf", ya.ev.v.x, ya.ev.v.x, ya.ev.v.z);
     console_log("Y %lf %lf %lf", yb.ev.v.y, yb.ev.v.y, yb.ev.v.z);*/
 
@@ -208,7 +208,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     /*console_log("X %lf %lf %lf", ya.ev.v.x, ya.ev.v.x, ya.ev.v.z);
     console_log("Y %lf %lf %lf", yb.ev.v.y, yb.ev.v.y, yb.ev.v.z);*/
 
-    /*pixel_t ps[3];
+    pixel_t ps[3];
 
     for (int i = 0; i < 3; i++)
     {
@@ -218,7 +218,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
 
     draw_line(s, ps[0].pos, ps[1].pos, shf, mat);
     draw_line(s, ps[0].pos, ps[2].pos, shf, mat);
-    draw_line(s, ps[2].pos, ps[1].pos, shf, mat);*/
+    draw_line(s, ps[2].pos, ps[1].pos, shf, mat);
 }
 
 void draw_triangle_row(
@@ -258,6 +258,9 @@ void draw_triangle_row(
     ev = &vi;
     yv = &yi;
 
+    /*for (int i = va.v.x; i < 0; i++)
+        YIELD_EVERTEX(ev, yv);*/
+
     for (int i = max(0, va.v.x); i < min(vb.v.x - 1, s->canv->w - 1); i++)
     {
         YIELD_EVERTEX(ev, yv);
@@ -271,7 +274,9 @@ void draw_triangle_row(
         }*/
 
         a = shf(vi, mat, s);
-        SET_PIXEL(s->canv, a.pos.x, a.pos.y, &a.col);
+        if (a.pos.y >= 0 && (vi.v.z >= 0 && vi.v.z <= 1000))
+            SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, ((vi.v.z)/1000*65535), &a.col);
+        //YIELD_EVERTEX(ev, yv);
     }
 }
 

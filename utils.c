@@ -9,11 +9,26 @@
 evertex_t world2viewport(evertex_t v, scene_t *s)
 {
     evertex_t r = v;
-    //console_log("(%lf %lf %lf)", r.v.x, r.v.y, r.v.z);
-    r.v = m4_v3t_mul(&s->view_mtrx, &r.v);
-    //console_log("(%lf %lf %lf)", r.v.x, r.v.y, r.v.z);
-    r.v = m4_v3t_mul(&s->proj_mtrx, &r.v);
-    //console_log("(%lf %lf %lf)", r.v.x, r.v.y, r.v.z);
+
+    /*static float tmp[8];
+    static float res[8];
+
+    tmp[0] = r.v.x;
+    tmp[1] = r.n.x;
+    tmp[2] = r.v.y;
+    tmp[3] = r.n.y;
+    tmp[4] = r.v.z;
+    tmp[5] = r.n.z;
+    tmp[6] = 0;
+    tmp[7] = 0;*/
+
+    r.v = m4_v3t_mul(&s->mvp_mtrx, &r.v);
+    r.n = m4_v3t_mul(&s->mvp_mtrx, &r.n);
+
+    /*mtrx_mul(&res, &s->mvp_mtrx, 4, 4, &tmp, 4, 2);
+
+    r.v = (v3_t){tmp[0], tmp[2], tmp[4]};
+    r.n = (v3_t){tmp[1], tmp[3], tmp[5]};*/
 
     return r;
 }

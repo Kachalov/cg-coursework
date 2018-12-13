@@ -10,8 +10,8 @@ typedef struct model_st model_t;
 typedef struct bitmask_st bitmask_t;
 
 
-typedef struct {
-    uint8_t *data;
+typedef struct zbuf_st {
+    uint16_t *data;
     uint32_t w;
     uint32_t h;
 } zbuf_t;
@@ -52,12 +52,13 @@ typedef struct scene_st {
     } models;
     m4_t view_mtrx;
     m4_t proj_mtrx;
+    m4_t mvp_mtrx;
 } scene_t;
 
 scene_t *scene;
 
-scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint8_t *zbuf);
+scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf);
 void scene_free(scene_t *s);
 int scene_add_model(scene_t *s, model_t *model);
-zbuf_t *zbuf_init(int w, int h, uint8_t *data);
+zbuf_t *zbuf_init(int w, int h, uint16_t *data);
 void clear(scene_t *s);
