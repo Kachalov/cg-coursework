@@ -4,11 +4,13 @@
 
 #include "math.h"
 #include "canvas.h"
+#include "bitmask.h"
 
 struct canvas_st;
 typedef struct model_st model_t;
-typedef struct bitmask_st bitmask_t;
 
+
+#define ZBUF_DEPTH 65535
 
 typedef struct zbuf_st {
     uint16_t *data;
@@ -47,10 +49,22 @@ typedef struct scene_st {
     } viewports;*/
     m4_t viewport;
     struct {
+        v3_t eye;
+        v3_t center;
+        v3_t up;
+    } viewport_props;
+    struct {
+        float angle;
+        float ratio;
+        float near;
+        float far;
+    } perspective_props;
+    struct {
         model_t **d;
         uint8_t l;
     } models;
     m4_t view_mtrx;
+    m4_t viewport_mtrx;
     m4_t proj_mtrx;
     m4_t mvp_mtrx;
 } scene_t;
@@ -62,3 +76,5 @@ void scene_free(scene_t *s);
 int scene_add_model(scene_t *s, model_t *model);
 zbuf_t *zbuf_init(int w, int h, uint16_t *data);
 void clear(scene_t *s);
+export void calculate_mtrx(scene_t *s);
+export void move_viewport(scene_t *s, float hor, float vert, float tang, float norm);

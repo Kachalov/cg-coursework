@@ -139,7 +139,7 @@ float v3_distance(v3_t a, v3_t b)
     return sqrt(v3_dot(s, s));
 }
 
-m4_t make_viewport(v3_t eye, v3_t center, v3_t up)
+m4_t make_view(v3_t eye, v3_t center, v3_t up)
 {
     m4_t m;
 
@@ -169,7 +169,25 @@ m4_t make_viewport(v3_t eye, v3_t center, v3_t up)
     return m;
 }
 
-m4_t make_perspective(float angle, float ratio, float near, float far)
+m4_t make_viewport(int x, int y, int w, int h)
+{
+    m4_t m;
+
+    for (float *it = (float *)(&m); it < (float *)(&m) + 16; it++)
+        *it = 0;
+
+    m.d[0].w = x + w * 1.0/2;
+    m.d[1].w = y + h * 1.0/2;
+    m.d[2].w = ZBUF_DEPTH * 1.0/2;
+
+    m.d[0].x = w * 1.0/2;
+    m.d[1].y = h * 1.0/2;
+    m.d[2].z = ZBUF_DEPTH * 1.0/2;
+
+    return m;
+}
+
+m4_t make_projection(float angle, float ratio, float near, float far)
 {
     m4_t m;
     float tan_half_angle = tan(angle / 2);

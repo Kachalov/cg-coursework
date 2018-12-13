@@ -22,6 +22,7 @@ let stat = document.getElementById('stat').getContext('2d');
 
 var module,
 exports;
+var nextFrame, waScene, waFuns;
 
 webassembly
     .load("main.wasm", {'initialMemory': 1, 'imports': {
@@ -37,6 +38,7 @@ webassembly
         }})
     .then(function(module_) {
     exports = (module = module_).exports;
+    waFuns = exports;
 
     let byteSize = width * height * 4;
     var pointer = exports.heap_alloc( byteSize );
@@ -44,6 +46,7 @@ webassembly
     var img = new ImageData(usub, width, height);
 
     var scene = exports.scene_init(width, height, pointer, null);
+    waScene = scene;
 
     //exports.bufdraw(pointer, width, height);
     //ctx.putImageData(img, 100, 100);
@@ -54,7 +57,7 @@ webassembly
     var maxFps = 60;
     var delay = 0;
     var lastStatFps = maxFps;
-    function frame() {
+    function frame(wf_mode) {
         //ctx.clearRect(0, 0, scrcont.clientHeight, scrcont.clientWidth);
         //setInterval(1000);
         /*for (var j = 0; j < scr бесcont.clientHeight; j++) {
@@ -67,7 +70,7 @@ webassembly
             var start = new Date().getTime();
 
             try {
-            exports.frame(scene);
+            exports.frame(scene, wf_mode);
             } catch (e) {
                 alert(e);
             }
@@ -126,10 +129,44 @@ webassembly
         else
         requestAnimationFrame(frame);
     };
-    frame();
-    /*var ptr = module.mem.U8[24];
-    alert(exports.point(ptr, 10));
-    alert(exports.point_init(ptr, 1, 2, 3));
-    alert(exports.point_x(ptr));*/
+        frame(0);
+        nextFrame = frame;
+
+
+        var events = {};
+        addEventListener("keydown", function(e) {
+            events[e.keyCode] = true;
+            var hor = (events[37] === true ? 1 : 0) + (events[39] === true ? -1 : 0);
+            var vert = (events[38] === true ? 1 : 0) + (events[40] === true ? -1 : 0);
+            switch(e.keyCode) {
+                case 37:  // если нажата клавиша влево
+                    break;
+                case 38:   // если нажата клавиша вверх
+                    break;
+                case 39:   // если нажата клавиша вправо
+                    break;
+                case 40:   // если нажата клавиша вниз
+                    break;
+            }
+
+            waFuns.move_viewport(waScene, hor/180*3.1415,  vert/180*3.1415, 0, 0);
+            nextFrame(1);
+        });
+
+        addEventListener("keyup", function(e) {
+            events[e.keyCode] = false;
+            var allUp = true;
+            for (var ev in events)
+            {
+                if (ev === true)
+                {
+                    allUp = false;
+                    break;
+                }
+            }
+
+            if (allUp)
+                nextFrame(0);
+        });
     })
     .catch(e => {alert(e)});

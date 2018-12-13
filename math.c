@@ -32,6 +32,16 @@ int max(int a, int b)
     return a > b ? a : b;
 }
 
+int clamp(int v, int f, int t)
+{
+    return v > t ? t : v < f ? f : v;
+}
+
+float clampf(float v, float f, float t)
+{
+    return v > t ? t : v < f ? f : v;
+}
+
 v3_t v3_add(v3_t a, v3_t b)
 {
     return (v3_t){a.x + b.x, a.y + b.y, a.z + b.z};
@@ -103,5 +113,12 @@ v3_t m4_v3t_mul(m4_t *m, v3_t *v)
 
     mtrx_mul((float *)(&r4), (float *)m, 4, 4, (float *)(&v4), 4, 1);
     memcpy(&r, &r4, sizeof(v3_t));
+    return r;
+}
+
+v3_t m3_v3t_mul(m3_t *m, v3_t *v)
+{
+    v3_t r;
+    mtrx_mul((float *)(&r), (float *)m, 3, 3, (float *)(v), 3, 1);
     return r;
 }

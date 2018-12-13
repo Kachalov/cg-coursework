@@ -1,7 +1,6 @@
 #include <webassembly.h>
 
 #include "bitmask.h"
-#include "canvas.h"
 
 
 export

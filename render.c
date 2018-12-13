@@ -2,13 +2,15 @@
 
 #include "render.h"
 #include "math.h"
-#include "bitmask.h"
 #include "utils.h"
 
 
-void frame(scene_t *s)
+int wireframe_mode;
+
+void frame(scene_t *s, int wireframe)
 {
     model_t **model;
+    wireframe_mode = wireframe;
 
     model = s->models.d;
     for (int i = 0; i < s->models.l; i++, model++)
@@ -18,6 +20,10 @@ void frame(scene_t *s)
 
     // TODO (27.11.18): Remove test part
     static int off = 0;
+    off++;
+
+    //move_viewport(s, 1.*5/180*3.1415, 1.*5/180*3.1415, 0, 0);
+
     return;
 
     s->models.d[0]->fs.d[0].l = 3;
@@ -49,7 +55,6 @@ void frame(scene_t *s)
     s->models.d[1]->vs.d[2].y=450 - round(100*cos((1.3*off) * 3.14/180));
     s->models.d[1]->vs.d[2].z=50 + round(199*sin((-off) * 3.14/180));*/
 
-    off++;
     // End of test part
 }
 
@@ -70,6 +75,12 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
 {
     evertex_t vs[3];
 
+    rgba_t cols[] = {
+        {255, 0, 0, 255}, {0, 255, 0, 255}, {0, 0, 255, 255},
+        {99, 23, 162, 255}, {220, 226, 67, 255}, {61, 163, 45, 255}
+    };
+    int cols_len = 6;
+
     if (face->l == 3)
     {
         for (int i = 0; i < 3; i++)
@@ -87,6 +98,7 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
                 vs[i] = model->props.shaders.v(vs, i, s);
             console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
             vs[i] = world2viewport(vs[i], s);
+            memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));
             console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
         }
 
@@ -141,15 +153,16 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
     console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);
 
-    int min_y = min(s->canv->h, max(0, vs[0].v.y));
-    int mid_y = min(s->canv->h, max(0, vs[1].v.y));
-    int max_y = min(s->canv->h, max(0, vs[2].v.y));
+    if (wireframe_mode == 0) {
+    int min_y = vs[0].v.y;//min(s->canv->h, max(0, vs[0].v.y));
+    int mid_y = vs[1].v.y;//min(s->canv->h, max(0, vs[1].v.y));
+    int max_y = vs[2].v.y;//min(s->canv->h, max(0, vs[2].v.y));
 
     ya = yield_evertex_init(vs[0], vs[1], vs[0].v.y - vs[1].v.y);
     yb = yield_evertex_init(vs[0], vs[2], vs[0].v.y - vs[2].v.y);
 
-    //ya.dev.v.y = 1;
-    //yb.dev.v.y = 1;
+    ya.dev.v.y = 1;
+    yb.dev.v.y = 1;
 
     /*ya.evc.r = 255;
     ya.evc.g = 0;
@@ -185,8 +198,8 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     //yb.ev = ytmp.ev;
     //yb.evc = ytmp.evc;
 
-    //ya.dev.v.y = -1;
-    //yb.dev.v.y = -1;
+    ya.dev.v.y = -1;
+    yb.dev.v.y = -1;
 
     /*ya.evc.r = 0;
     ya.evc.g = 255;
@@ -207,9 +220,11 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
 
     /*console_log("X %lf %lf %lf", ya.ev.v.x, ya.ev.v.x, ya.ev.v.z);
     console_log("Y %lf %lf %lf", yb.ev.v.y, yb.ev.v.y, yb.ev.v.z);*/
+    }
 
     pixel_t ps[3];
 
+    if (wireframe_mode) {
     for (int i = 0; i < 3; i++)
     {
         ps[i].pos.x = vs[i].v.x;
@@ -219,6 +234,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     draw_line(s, ps[0].pos, ps[1].pos, shf, mat);
     draw_line(s, ps[0].pos, ps[2].pos, shf, mat);
     draw_line(s, ps[2].pos, ps[1].pos, shf, mat);
+    }
 }
 
 void draw_triangle_row(
@@ -234,8 +250,6 @@ void draw_triangle_row(
 
     ev = &vb;
     YIELD_EVERTEX(ev, yb);
-
-    vb.v.y += 1;
 
     if (va.v.x > vb.v.x)
     {
@@ -261,7 +275,7 @@ void draw_triangle_row(
     /*for (int i = va.v.x; i < 0; i++)
         YIELD_EVERTEX(ev, yv);*/
 
-    for (int i = max(0, va.v.x); i < min(vb.v.x - 1, s->canv->w - 1); i++)
+    for (int i = va.v.x; i <= min(vb.v.x - 1, s->canv->w - 1); i++)
     {
         YIELD_EVERTEX(ev, yv);
 
@@ -274,8 +288,8 @@ void draw_triangle_row(
         }*/
 
         a = shf(vi, mat, s);
-        if (a.pos.y >= 0 && (vi.v.z >= 0 && vi.v.z <= 1000))
-            SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, ((vi.v.z)/1000*65535), &a.col);
+        if (a.pos.x >= 0 && a.pos.x < s->canv->w && a.pos.y >= 0 && a.pos.y < s->canv->h && (vi.v.z >= s->perspective_props.near && vi.v.z <= s->perspective_props.far))
+            SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, ((vi.v.z)/(s->perspective_props.far - s->perspective_props.near)*ZBUF_DEPTH), &a.col);
         //YIELD_EVERTEX(ev, yv);
     }
 }

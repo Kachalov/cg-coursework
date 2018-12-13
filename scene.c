@@ -113,9 +113,16 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->models.d = 0;
     s->models.l = 0;
 
-    s->view_mtrx = make_viewport((v3_t){1, 0.4, -1}, (v3_t){0, 0, 0}, (v3_t){0, 1, 0});
-    s->proj_mtrx = make_perspective(45, s->canv->w / s->canv->h, 0.1, 1000);
-    s->mvp_mtrx = m4_m4_mul(&s->proj_mtrx, &s->view_mtrx);
+    s->viewport_props.eye = (v3_t){1, 0.4, -1};
+    s->viewport_props.center = (v3_t){0, 0, 0};
+    s->viewport_props.up = (v3_t){0, 1, 0};
+
+    s->perspective_props.angle = 45;
+    s->perspective_props.ratio = 1;
+    s->perspective_props.near = 0.1;
+    s->perspective_props.far = 1000;
+
+    calculate_mtrx(s);
 
     // TODO (27.11.18): Remove test part
     {m4_t m = s->view_mtrx;
@@ -149,9 +156,14 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
         {100, 100, 600},
         {100, 200, 600},
         {200, 200, 600},
-        {200, 100, 600}
+        {200, 100, 600},
+
+        {0, 0, 0},
+        {100, 0, 0},
+        {0, 100, 0},
+        {0, 0, 100}
     };
-    m = model_add_vertices_arr(m, vs, 8);
+    m = model_add_vertices_arr(m, vs, 12);
 
     normalid_t nid[] = {-1, -1, -1};
     vertexid_t vid[3] = {0, 1, 2};
@@ -183,6 +195,15 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     memcpy(vid, &((vertexid_t[3]){3, 0, 7}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){7, 4, 0}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+
+    ///////
+
+    memcpy(vid, &((vertexid_t[3]){8, 9, 10}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){8, 10, 11}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){8, 9, 11}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
     m->props.mat.ambient.r = 0;
@@ -263,4 +284,48 @@ export void clear(scene_t *s)
     uint16_t *zit = s->zbuf->data;
     for (int i = 0; i < s->zbuf->h * s->zbuf->w; i++, zit++)
         *zit = (uint16_t)-1;
+}
+
+void calculate_mtrx(scene_t *s)
+{
+    s->view_mtrx = make_view(
+        s->viewport_props.eye,
+        s->viewport_props.center,
+        s->viewport_props.up);
+    s->proj_mtrx = make_projection(
+        s->perspective_props.angle,
+        s->perspective_props.ratio,
+        s->perspective_props.near,
+        s->perspective_props.far);
+    s->viewport_mtrx = make_viewport(
+        s->canv->w * 1.0 / 4,
+        s->canv->h * 1.0 / 4,
+        s->canv->w * 3.0 / 4,
+        s->canv->h * 3.0 / 4);
+    m4_t vp = m4_m4_mul(&s->proj_mtrx, &s->view_mtrx);
+    s->mvp_mtrx = vp;//m4_m4_mul(&s->viewport_mtrx, &vp);
+}
+
+void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
+{
+    m3_t my = {
+        cos(hor), 0, sin(hor),
+        0, 1, 0,
+        -sin(hor), 0, cos(hor)
+    };
+
+    m3_t mx = {
+        1, 0, 0,
+        0, cos(vert), -sin(vert),
+        0, sin(vert), cos(vert)
+    };
+
+    v3_t center = s->viewport_props.center;
+    center = v3_sub(center, s->viewport_props.eye);
+
+    center = m3_v3t_mul(&my, &center);
+    center = m3_v3t_mul(&mx, &center);
+    s->viewport_props.center = v3_add(center, s->viewport_props.eye);
+
+    calculate_mtrx(s);
 }
