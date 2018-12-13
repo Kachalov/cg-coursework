@@ -2,13 +2,12 @@
 
 #include <inttypes.h>
 
-#include "bitmask.h"
+#include "math.h"
+#include "canvas.h"
 
 struct canvas_st;
-typedef struct canvas_st canvas_t;
 typedef struct model_st model_t;
-typedef struct v3_st v3_t;
-typedef struct rgba_st rgba_t;
+typedef struct bitmask_st bitmask_t;
 
 
 typedef struct {

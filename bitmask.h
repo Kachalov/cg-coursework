@@ -12,7 +12,7 @@ typedef struct point_st point_t;
 
 typedef uint8_t bitmask_data_t;
 
-typedef struct {
+typedef struct bitmask_st {
     bitmask_data_t *data;
     uint32_t w;
     uint32_t h;

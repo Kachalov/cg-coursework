@@ -84,7 +84,7 @@ int mtrx_mul(float *res, float *a, int am, int an, float *b, int bm, int bn)
 m3_t m3_m3_mul(m3_t *a, m3_t *b)
 {
     m3_t m;
-    mtrx_mul(&m, a, 3, 3, b, 3, 3);
+    mtrx_mul((float *)(&m), (float *)a, 3, 3, (float *)b, 3, 3);
     return m;
 }
 
@@ -95,7 +95,7 @@ v3_t m4_v3t_mul(m4_t *m, v3_t *v)
     memcpy(&v4, v, sizeof(v3_t));
     v4.w = 1;
 
-    mtrx_mul(&r4, m, 4, 4, &v4, 4, 1);
+    mtrx_mul((float *)(&r4), (float *)m, 4, 4, (float *)(&v4), 4, 1);
     memcpy(&r, &r4, sizeof(v3_t));
     return r;
 }
