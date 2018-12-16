@@ -3,6 +3,7 @@
 #include "render.h"
 #include "math.h"
 #include "utils.h"
+#include "shaders.h"
 
 
 int wireframe_mode;
@@ -12,50 +13,121 @@ void frame(scene_t *s, int wireframe)
     model_t **model;
     wireframe_mode = wireframe;
 
+    draw_grid(s, 20, 25);
+    draw_lights(s);
+
     model = s->models.d;
     for (int i = 0; i < s->models.l; i++, model++)
     {
         draw_model(s, *model);
     }
+}
 
-    // TODO (27.11.18): Remove test part
-    static int off = 0;
-    off++;
+void draw_grid(scene_t *s, int size, int count)
+{
+    evertex_t a, b;
+    mat_t mat;
 
-    //move_viewport(s, 1.*5/180*3.1415, 1.*5/180*3.1415, 0, 0);
+    a.v = (v3_t){0.0, 0, 0};
+    a = world2viewport(a, s);
 
-    return;
+    mat.ambient = (rgba_t){0, 0, 255, 255};
+    b.v = (v3_t){100, 0, 0};
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
 
-    s->models.d[0]->fs.d[0].l = 3;
-    s->models.d[0]->fs.l = 3;
+    mat.ambient = (rgba_t){255, 0, 0, 255};
+    b.v = (v3_t){0, 100, 0};
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
 
-    s->models.d[0]->vs.d[0].x=200 + round(99*cos((1.3*off) * 3.14/180));
-    s->models.d[0]->vs.d[0].y=100 + round(10*cos((4*off) * 3.14/180));
-    s->models.d[0]->vs.d[0].z=50 + round(10*cos((3*off) * 3.14/180));
+    mat.ambient = (rgba_t){255, 255, 0, 255};
+    b.v = (v3_t){0, 0, 100};
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
 
-    s->models.d[0]->vs.d[1].x=400 + round(199*sin((-off) * 3.14/180));
-    s->models.d[0]->vs.d[1].y=500 + round(15*cos((-2*off) * 3.14/180));
-    s->models.d[0]->vs.d[1].z=500 - round(100*cos((1.3*off) * 3.14/180));
+    mat.ambient = (rgba_t){160, 160, 160, 255};
+    for (int x = -count / 2; x <= count - (count / 2); x++)
+    {
+        a.v.z = b.v.z = 0;
+        a.v.x = b.v.x = size * x;
+        a.v.y = -size * (count / 2);
+        b.v.y = size * (count - (count / 2));
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
+    }
 
-    s->models.d[0]->vs.d[2].x=700 + round(300*cos((off) * 3.14/180));
-    s->models.d[0]->vs.d[2].y=450 - round(100*cos((1.3*off) * 3.14/180));
-    s->models.d[0]->vs.d[2].z=50 + round(199*sin((-off) * 3.14/180));
+    for (int y = -count / 2; y <= count - (count / 2); y++)
+    {
+        a.v.z = b.v.z = 0;
+        a.v.y = b.v.y = size * y;
+        a.v.x = -size * (count / 2);
+        b.v.x = size * (count - (count / 2));
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
+    }
+}
 
-    /*s->models.d[1]->fs.d[0].l = 3;
+void draw_lights(scene_t *s)
+{
+    evertex_t a, b;
+    mat_t mat;
 
-    s->models.d[1]->vs.d[0].x=200 + round(99*cos((1.3*off) * 3.14/180));
-    s->models.d[1]->vs.d[0].y=100 + round(10*cos((4*off) * 3.14/180));
-    s->models.d[1]->vs.d[0].z=50 + round(10*cos((3*off) * 3.14/180));
+    const int r1 = 25, r2 = 10;
 
-    s->models.d[1]->vs.d[1].x=400 + round(199*sin((-off) * 3.14/180));
-    s->models.d[1]->vs.d[1].y=500 + round(15*cos((-2*off) * 3.14/180));
-    s->models.d[0]->vs.d[1].z=500 - round(100*cos((1.3*off) * 3.14/180));
+    mat.ambient = (rgba_t){255, 255, 255, 255};
+    for (int lid = 0; lid < s->ls.l; lid++)
+    {
+        a.v = b.v = s->ls.d[lid].pos;
+        a.v.x -= r1;
+        b.v.x += r1;
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
 
-    s->models.d[1]->vs.d[2].x=700 + round(300*cos((off) * 3.14/180));
-    s->models.d[1]->vs.d[2].y=450 - round(100*cos((1.3*off) * 3.14/180));
-    s->models.d[1]->vs.d[2].z=50 + round(199*sin((-off) * 3.14/180));*/
+        a.v = b.v = s->ls.d[lid].pos;
+        a.v.y -= r1;
+        b.v.y += r1;
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
 
-    // End of test part
+        a.v = b.v = s->ls.d[lid].pos;
+        a.v.z -= r1;
+        b.v.z += r1;
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
+
+        a.v = b.v = s->ls.d[lid].pos;
+        a.v.x -= r2;
+        b.v.x += r2;
+        a.v.z -= r2;
+        b.v.z += r2;
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
+
+        a.v = b.v = s->ls.d[lid].pos;
+        a.v.x -= r2;
+        b.v.x += r2;
+        a.v.y -= r2;
+        b.v.y += r2;
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
+
+        a.v = b.v = s->ls.d[lid].pos;
+        a.v.z -= r2;
+        b.v.z += r2;
+        a.v.y -= r2;
+        b.v.y += r2;
+        a = world2viewport(a, s);
+        b = world2viewport(b, s);
+        draw_line_3d(s, a, b, mat_shader_f, &mat);
+    }
 }
 
 void draw_model(scene_t *s, const model_t *model)
@@ -235,6 +307,12 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     draw_line(s, ps[0].pos, ps[2].pos, shf, mat);
     draw_line(s, ps[2].pos, ps[1].pos, shf, mat);
     }
+    else
+    {
+    /*draw_line_3d(s, vs[0], vs[1], shf, mat);
+    draw_line_3d(s, vs[0], vs[2], shf, mat);
+    draw_line_3d(s, vs[2], vs[1], shf, mat);*/
+    }
 }
 
 void draw_triangle_row(
@@ -287,9 +365,18 @@ void draw_triangle_row(
                 continue;
         }*/
 
+        if (vi.v.x < 0 || vi.v.x >= s->canv->w ||
+        vi.v.y < 0 || vi.v.y >= s->canv->h)
+            continue;
+
         a = shf(vi, mat, s);
         if (a.pos.x >= 0 && a.pos.x < s->canv->w && a.pos.y >= 0 && a.pos.y < s->canv->h && (vi.v.z >= s->perspective_props.near && vi.v.z <= s->perspective_props.far))
             SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, ((vi.v.z)/(s->perspective_props.far - s->perspective_props.near)*ZBUF_DEPTH), &a.col);
+        //if (a.pos.x >= 0 && a.pos.x < s->canv->w &&
+        //    a.pos.y >= 0 && a.pos.y < s->canv->h &&
+        //    (vi.v.z >= 0 && vi.v.z <= ZBUF_DEPTH))
+        //    SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, vi.v.z, &a.col);
+
         //YIELD_EVERTEX(ev, yv);
     }
 }

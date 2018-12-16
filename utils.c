@@ -9,6 +9,8 @@
 evertex_t world2viewport(evertex_t v, scene_t *s)
 {
     evertex_t r = v;
+    v4_t v4;
+    v3_t v3;
 
     /*static float tmp[8];
     static float res[8];
@@ -22,8 +24,31 @@ evertex_t world2viewport(evertex_t v, scene_t *s)
     tmp[6] = 0;
     tmp[7] = 0;*/
 
-    r.v = m4_v3t_mul(&s->mvp_mtrx, &r.v);
-    r.n = m4_v3t_mul(&s->mvp_mtrx, &r.n);
+    /*v4 = m4_v3t_mul_v4(&s->mvp_mtrx, &r.v);
+    v3 = (v3_t){v4.x, v4.y, v4.z};
+    //console_log("MVP %lf %lf %lf %lf", v4.x, v4.y, v4.z, v4.w);
+    if (v4.w)
+        v3 = v3_scale(v3, 1.0/v4.w);
+    //console_log("MVP w=1 %lf %lf %lf", r.v.x, r.v.y, r.v.z);
+    r.v = m4_v3t_mul(&s->viewport_mtrx, &v3);
+
+    v4 = m4_v3t_mul_v4(&s->mvp_mtrx, &r.n);
+    v3 = (v3_t){v4.x, v4.y, v4.z};
+    if (v4.w)
+        v3 = v3_scale(v3, 1.0/v4.w);
+    r.n = m4_v3t_mul(&s->viewport_mtrx, &v3);*/
+
+    v3 = m4_v3t_mul(&(m4_t){
+        sqrt(1./2), 0, -sqrt(1./2), 0,
+        sqrt(1./6), sqrt(2./3), sqrt(1./6), 0,
+        sqrt(1./3), -sqrt(1./3), sqrt(1./3), 0,
+        0, 0, 0, 1
+    }, &r.v);
+    r.v = (v3_t){
+        -v3.x + s->canv->w / 2 - s->viewport_props.eye.x,
+        -v3.y + s->canv->h / 2 - s->viewport_props.eye.y,
+        v3.z - s->viewport_props.eye.z
+    };
 
     /*mtrx_mul(&res, &s->mvp_mtrx, 4, 4, &tmp, 4, 2);
 
@@ -114,23 +139,25 @@ int intersect_triangle(v3_t from, v3_t dir, v3_t v0, v3_t v1, v3_t v2)
     v3_t e2 = v3_sub(v2, v0);
     v3_t pv = v3_cross(dir, e2);
     float det = v3_dot(e1, pv);
+    float r;
 
     if (fpclassify(det) == FP_ZERO)
-        return -1;
+        return 0;
 
     float inv_det = 1 / det;
     v3_t tv = v3_sub(from, v0);
     float u = v3_dot(tv, pv) * inv_det;
 
     if (u < 0 || 1 < u)
-        return -1;
+        return 0;
 
     v3_t qv = v3_cross(tv, e1);
     float v = v3_dot(dir, qv) * inv_det;
     if (v < 0 || 1 < u + v)
-        return -1;
+        return 0;
 
-    return v3_dot(e2, qv) * inv_det;
+    r = v3_dot(e2, qv) * inv_det;
+    return r;
 }
 
 float v3_distance(v3_t a, v3_t b)
@@ -178,11 +205,12 @@ m4_t make_viewport(int x, int y, int w, int h)
 
     m.d[0].w = x + w * 1.0/2;
     m.d[1].w = y + h * 1.0/2;
-    m.d[2].w = ZBUF_DEPTH * 1.0/2;
+    m.d[2].w = 1 * 1.0/2;
+    m.d[3].w = 1;
 
     m.d[0].x = w * 1.0/2;
     m.d[1].y = h * 1.0/2;
-    m.d[2].z = ZBUF_DEPTH * 1.0/2;
+    m.d[2].z = 1 * 1.0/2;
 
     return m;
 }

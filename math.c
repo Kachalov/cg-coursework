@@ -72,6 +72,15 @@ float v3_dot(v3_t a, v3_t b)
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
+v3_t v3_scale(v3_t a, float k)
+{
+    return (v3_t){
+        a.x * k,
+        a.y * k,
+        a.z * k
+    };
+}
+
 int mtrx_mul(float *res, float *a, int am, int an, float *b, int bm, int bn)
 {
     if (an != bm)
@@ -109,10 +118,20 @@ v3_t m4_v3t_mul(m4_t *m, v3_t *v)
     v3_t r;
     v4_t v4, r4;
     memcpy(&v4, v, sizeof(v3_t));
-    v4.w = 0;
+    v4.w = 1;
 
     mtrx_mul((float *)(&r4), (float *)m, 4, 4, (float *)(&v4), 4, 1);
     memcpy(&r, &r4, sizeof(v3_t));
+    return r;
+}
+
+v4_t m4_v3t_mul_v4(m4_t *m, v3_t *v)
+{
+    v4_t v4, r;
+    memcpy(&v4, v, sizeof(v3_t));
+    v4.w = 1;
+
+    mtrx_mul((float *)(&r), (float *)m, 4, 4, (float *)(&v4), 4, 1);
     return r;
 }
 

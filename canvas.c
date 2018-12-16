@@ -24,7 +24,79 @@ canvas_t *canvas_init(int w, int h, rgba_t *data)
 export
 void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
 {
+    int dx = abs(a.v.x - b.v.x);
+    int dy = abs(a.v.y - b.v.y);
+    int steep = dy > dx;
 
+    if (steep)
+    {
+        float tmp = a.v.x;
+        a.v.x = a.v.y;
+        a.v.y = tmp;
+
+        tmp = b.v.x;
+        b.v.x = b.v.y;
+        b.v.y = tmp;
+
+        dx = abs(a.v.x - b.v.x);
+        dy = abs(a.v.y - b.v.y);
+    }
+
+    if (a.v.x > b.v.x)
+    {
+        evertex_t tmp = a;
+        a = b;
+        b = tmp;
+
+        dx = abs(a.v.x - b.v.x);
+        dy = abs(a.v.y - b.v.y);
+    }
+
+    int err = 0;
+    int derr = dy;
+    int y = a.v.y;
+    int sy = sign(b.v.y - a.v.y);
+
+    int cx, cy;
+    pixel_t pix;
+    evertex_t v;
+    float t;
+
+    for (
+        int x = a.v.x;
+        x <= min(b.v.x, (steep ? s->canv->h : s->canv->w) - 1) &&
+        y < (steep ? s->canv->w : s->canv->h);
+        x++)
+    {
+        t = (x - a.v.x) * 1.0 / (b.v.x - a.v.x);
+        cx = steep ? y : x;
+        cy = steep ? x : y;
+        v.v.x = cx;
+        v.v.y = cy;
+        v.v.z = float_inter(a.v.z, b.v.z, t);
+        v.n.x = float_inter(a.n.x, b.n.x, t);
+        v.n.y = float_inter(a.n.y, b.n.y, t);
+        v.n.z = float_inter(a.n.z, b.n.z, t);
+        v.c.r = clamp(float_inter(a.c.r, b.c.r, t), 0, 255);
+        v.c.g = clamp(float_inter(a.c.g, b.c.g, t), 0, 255);
+        v.c.b = clamp(float_inter(a.c.b, b.c.b, t), 0, 255);
+        v.c.a = clamp(float_inter(a.c.a, b.c.a, t), 0, 255);
+
+        if (cx >= 0 && cy >= 0)
+        {
+            pix = ((shader_f_t)shf)(v, mat, s);
+            if (pix.pos.x >= 0 && pix.pos.x < s->canv->w && pix.pos.y >= 0 && pix.pos.y < s->canv->h &&
+                (v.v.z >= s->perspective_props.near && v.v.z <= s->perspective_props.far))
+                SET_PIXEL_Z(s->canv, s->zbuf, pix.pos.x, pix.pos.y, ((v.v.z)/(s->perspective_props.far - s->perspective_props.near)*ZBUF_DEPTH), &pix.col);
+        }
+
+        err += derr;
+        if (2 * err >= dx)
+        {
+            y += sy;
+            err -= dx;
+        }
+    }
 }
 
 export
@@ -111,9 +183,9 @@ void set_pixel_z(canvas_t *canv, zbuf_t *zbuf, int16_t x, int16_t y, int16_t z, 
 rgba_t rgba_scale3(rgba_t a, float k)
 {
     return (rgba_t){
-        a.r * k,
-        a.g * k,
-        a.b * k,
+        clamp(k * a.r, 0, 255),
+        clamp(k * a.g, 0, 255),
+        clamp(k * a.b, 0, 255),
         a.a
     };
 }

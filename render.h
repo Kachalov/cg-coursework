@@ -34,6 +34,8 @@ typedef struct yield_evertex_st {
 } yield_evertex_t;
 
 export void frame(scene_t *s, int wireframe_mode);
+void draw_grid(scene_t *s, int size, int count);
+void draw_lights(scene_t *s);
 void draw_model(scene_t *s, const model_t *model);
 void draw_model_face(scene_t *s, const model_t *model, const face_t *face);
 void draw_fragment(scene_t *s, evertex_t *vs, const model_props_t *props);

@@ -13,7 +13,7 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 {
     pixel_t r;
 
-    r.col.r = a.c.r; //(10*lroundf(a.v.x/10.)) % 255;
+    r.col.r = a.c.r;
     r.col.g = a.c.g;
     r.col.b = a.c.b;
     r.col.a = a.c.a;
@@ -21,20 +21,21 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     r.pos.x = a.v.x;
     r.pos.y = a.v.y;
 
-    evertex_t wa = viewport2world(a, s);
+    evertex_t wa = a;//viewport2world(a, s);
 
     model_t **modeli;
     model_t *model;
     face_t *face;
-    evertex_t vs[3];
+    evertex_t vs[3], el;
     float atten, attens = 0;
+    int lights = 0;
 
     modeli = s->models.d;
-    for (int i = 0; i < s->models.l; i++, modeli++)
+    for (int mid = 0; mid < s->models.l; mid++, modeli++)
     {
         model = *modeli;
         face = model->fs.d;
-        for (int i = 0; i < model->fs.l; i++, face++)
+        for (int fid = 0; fid < model->fs.l; fid++, face++)
         {
             if (face->l == 3)
             {
@@ -46,21 +47,49 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
                     vs[i] = world2viewport(vs[i], s);
                 }
 
-                for (int i = 0; i < s->ls.l; i++)
+                for (int lid = 0; lid < s->ls.l; lid++)
                 {
-                    v3_t dir = v3_sub(s->ls.d[i].pos, wa.v);
+                    el.v = s->ls.d[lid].pos;
+                    el = world2viewport(el, s);
+                    v3_t dir = v3_sub(el.v, wa.v);
                     float d = sqrt(v3_dot(dir, dir));
                     float ind = intersect_triangle(wa.v, dir, vs[0].v, vs[1].v, vs[2].v);
-                    if (ind == -1 || ind < 1 || d < ind)
+
+                    /*if(0 && ind ==1)
                     {
-                        atten = 1 / (s->ls.d[i].attens.c +
-                        s->ls.d[i].attens.l * d +
-                        s->ls.d[i].attens.q * d * d);
+                        console_log("wa(%lf %lf %lf)", wa.v.x, wa.v.y, wa.v.z);
+                        console_log("li(%lf %lf %lf)", el.v.x, el.v.y, el.v.z);
+                        console_log("vs0(%lf %lf %lf)", vs[0].v.x, vs[0].v.y, vs[0].v.z);
+                        console_log("vs1(%lf %lf %lf)", vs[1].v.x, vs[1].v.y, vs[1].v.z);
+                        console_log("vs2(%lf %lf %lf)", vs[2].v.x, vs[2].v.y, vs[2].v.z);
+                        console_log("dir(%lf %lf %lf)", dir.x,dir.y,dir.z);
+                        console_log("d=%lf", d);
+                        //abort();
+                    }*/
+
+                    if (ind == 0 || d < ind)
+                    {
+                        /*if (ind > 0){
+                        console_log("!ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
+                        //abort();
+                        }*/
+
+                        atten = 1 / (s->ls.d[lid].attens.c +
+                        s->ls.d[lid].attens.l * d +
+                        s->ls.d[lid].attens.q * d * d);
 
                         dir = v3_norm(dir);
                         float alpha = v3_dot(dir, vs[0].n);
                         alpha = alpha < 0 ? -alpha : alpha;
-                        attens += atten * alpha;
+                        alpha = 1;
+                        if ((lights & (1 << lid)) == 0)
+                            attens += atten * alpha;
+                        lights |= (1 << lid);
+                    }
+                    else
+                    {
+                        //console_log("ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
+                        //abort();
                     }
                 }
             }
@@ -71,7 +100,8 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
         }
     }
 
-    //r.col = rgba_scale3(r.col, attens > 1 ? 1 : attens);
+    //console_log("K %lf", attens);
+    r.col = rgba_scale3(r.col, attens);
 
     return r;
 }
@@ -113,19 +143,20 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->models.d = 0;
     s->models.l = 0;
 
-    s->viewport_props.eye = (v3_t){1, 0.4, -1};
+
+    s->viewport_props.eye = (v3_t){0, 0, -300};//{1, 0.4, -1};
     s->viewport_props.center = (v3_t){0, 0, 0};
     s->viewport_props.up = (v3_t){0, 1, 0};
 
-    s->perspective_props.angle = 45;
-    s->perspective_props.ratio = 1;
+    s->perspective_props.angle = 30;
+    s->perspective_props.ratio = 1.0 * w / h;
     s->perspective_props.near = 0.1;
     s->perspective_props.far = 1000;
 
     calculate_mtrx(s);
 
     // TODO (27.11.18): Remove test part
-    {m4_t m = s->view_mtrx;
+    {m4_t m = s->mvp_mtrx;
     /*m4_t ma = (m4_t){
     1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.
     };
@@ -133,13 +164,28 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     v3_t r = m4_v3t_mul(&ma, &vb);
     console_log("[%lf; %lf; %lf]", r.x, r.y, r.z);
     abort();*/
+    console_log("mvp");
+    console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
+    console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
+    console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
+    console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
 
+    {m4_t m = s->view_mtrx;
+    console_log("view");
     console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
     console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
     console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
     console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
 
     {m4_t m = s->proj_mtrx;
+    console_log("proj");
+    console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
+    console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
+    console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
+    console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
+
+    {m4_t m = s->viewport_mtrx;
+    console_log("viewport");
     console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
     console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
     console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
@@ -148,20 +194,20 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     model_t *m = model_init(NULL, 1000, 1000, 1000);
 
     vertex_t vs[] = {
-        {100, 100, 500},
-        {100, 200, 500},
-        {200, 200, 500},
-        {200, 100, 500},
+        {100, 100, -5},
+        {100, 150, -5},
+        {150, 150, -5},
+        {150, 100, -5},
 
-        {100, 100, 600},
-        {100, 200, 600},
-        {200, 200, 600},
-        {200, 100, 600},
+        {100, 100, 45},
+        {100, 150, 45},
+        {150, 150, 45},
+        {150, 100, 45},
 
         {0, 0, 0},
-        {100, 0, 0},
-        {0, 100, 0},
-        {0, 0, 100}
+        {50, 0, 0},
+        {0, 50, 0},
+        {0, 0, 50}
     };
     m = model_add_vertices_arr(m, vs, 12);
 
@@ -181,7 +227,6 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     memcpy(vid, &((vertexid_t[3]){5, 4, 0}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
-    // TODO(13.12.18): Полоса
     memcpy(vid, &((vertexid_t[3]){2, 3, 6}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){6, 7, 3}), sizeof(vertexid_t[3]));
@@ -219,14 +264,14 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->ls.d = heap_alloc(sizeof (light_t) * 2);
     s->ls.l = 1;
 
-    s->ls.d[0].pos = (v3_t){90, 90, 100};
-    s->ls.d[0].attens = (light_attens_t){1, 0.007, 0};
+    s->ls.d[0].pos = (v3_t){5, 5, -2};
+    s->ls.d[0].attens = (light_attens_t){1, 0.0, 0};
     s->ls.d[0].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.specular = (rgba_t){255, 255, 255, 255};
 
     s->ls.d[1].pos = (v3_t){210, 210, 700};
-    s->ls.d[1].attens = (light_attens_t){1, 0.00001, 0};
+    s->ls.d[1].attens = (light_attens_t){1, 0.01, 0};
     s->ls.d[1].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[1].cols.diffuse = (rgba_t){255, 255, 255, 255};
     s->ls.d[1].cols.specular = (rgba_t){255, 255, 255, 255};
@@ -298,10 +343,10 @@ void calculate_mtrx(scene_t *s)
         s->perspective_props.near,
         s->perspective_props.far);
     s->viewport_mtrx = make_viewport(
-        s->canv->w * 1.0 / 4,
-        s->canv->h * 1.0 / 4,
-        s->canv->w * 3.0 / 4,
-        s->canv->h * 3.0 / 4);
+        s->canv->w * 0.0 / 4,
+        s->canv->h * 0.0 / 4,
+        s->canv->w * 4.0 / 4,
+        s->canv->h * 4.0 / 4);
     m4_t vp = m4_m4_mul(&s->proj_mtrx, &s->view_mtrx);
     s->mvp_mtrx = vp;//m4_m4_mul(&s->viewport_mtrx, &vp);
 }

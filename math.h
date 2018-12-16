@@ -46,10 +46,11 @@ v3_t v3_cross(v3_t a, v3_t b);
 v3_t v3_norm(v3_t a);
 float v3_dot(v3_t a, v3_t b);
 //float v4_dot(v4_t a, v4_t b);
-//v3_t v3_scale(v3_t a, float k);
+v3_t v3_scale(v3_t a, float k);
 
 int mtrx_mul(float *res, float *a, int am, int an, float *b, int bm, int bn);
 m3_t m3_m3_mul(m3_t *a, m3_t *b);
 v3_t m3_v3t_mul(m3_t *m, v3_t *v);
 m4_t m4_m4_mul(m4_t *a, m4_t *b);
 v3_t m4_v3t_mul(m4_t *m, v3_t *v);
+v4_t m4_v3t_mul_v4(m4_t *m, v3_t *v);

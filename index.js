@@ -129,8 +129,8 @@ webassembly
         else
         requestAnimationFrame(frame);
     };
-        frame(0);
         nextFrame = frame;
+        frame(0);
 
 
         var events = {};
