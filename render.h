@@ -9,7 +9,9 @@
 
 typedef struct evertex_st {
     vertex_t v;
+    vertex_t wv;
     v3_t n;
+    v3_t wn;
     rgba_t c;
     rgba_t light;
 } evertex_t;
@@ -47,7 +49,19 @@ export void draw_triangle_row(scene_t *s, evertex_t *vs, shader_f_t shf,
 (_yv)->ev.v.x += (_yv)->dev.v.x; \
 (_yv)->ev.v.y += (_yv)->dev.v.y; \
 (_yv)->ev.v.z += (_yv)->dev.v.z; \
+(_yv)->ev.wv.x += (_yv)->dev.wv.x; \
+(_yv)->ev.wv.y += (_yv)->dev.wv.y; \
+(_yv)->ev.wv.z += (_yv)->dev.wv.z; \
+(_yv)->ev.n.x += (_yv)->dev.n.x; \
+(_yv)->ev.n.y += (_yv)->dev.n.y; \
+(_yv)->ev.n.z += (_yv)->dev.n.z; \
+(_yv)->ev.wn.x += (_yv)->dev.wn.x; \
+(_yv)->ev.wn.y += (_yv)->dev.wn.y; \
+(_yv)->ev.wn.z += (_yv)->dev.wn.z; \
 (_ev)->v = (_yv)->ev.v; \
+(_ev)->wv = (_yv)->ev.wv; \
+(_ev)->n = (_yv)->ev.n; \
+(_ev)->wn = (_yv)->ev.wn; \
 (_ev)->c.r = clamp(lroundf((_yv)->evc.r += (_yv)->devc.r), 0, 255); \
 (_ev)->c.g = clamp(lroundf((_yv)->evc.g += (_yv)->devc.g), 0, 255); \
 (_ev)->c.b = clamp(lroundf((_yv)->evc.b += (_yv)->devc.b), 0, 255); \

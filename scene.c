@@ -13,15 +13,23 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 {
     pixel_t r;
 
-    r.col.r = a.c.r;
-    r.col.g = a.c.g;
-    r.col.b = a.c.b;
-    r.col.a = a.c.a;
+    /*r.col.r = clamp(lroundf(a.wv.x) % 255, 0, 255);a.c.r;
+    r.col.g = clamp(lroundf(a.wv.x) % 255, 0, 255);a.c.g;
+    r.col.b = clamp(lroundf(a.wv.x) % 255, 0, 255);a.c.b;*/
+    r.col = a.c;
 
     r.pos.x = a.v.x;
     r.pos.y = a.v.y;
+    //return r;
 
-    evertex_t wa = a;//viewport2world(a, s);
+    static int calls = 0;
+    if(calls++ < 500 || calls > 600)
+    {
+        //r.col = (rgba_t){0, 0, 0, 255};
+        //return r;
+    }
+    else console_log("wa(%lf %lf %lf)", a.wv.x, a.wv.y, a.wv.z);
+
 
     model_t **modeli;
     model_t *model;
@@ -29,6 +37,9 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     evertex_t vs[3], el;
     float atten, attens = 0;
     int lights = 0;
+
+    for (int lid = 0; lid < s->ls.l; lid++)
+        lights |= (1 << lid);
 
     modeli = s->models.d;
     for (int mid = 0; mid < s->models.l; mid++, modeli++)
@@ -41,63 +52,61 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    vs[i].v = model->vs.d[face->v[i]];
+                    vs[i].wv = model->vs.d[face->v[i]];
                     if (face->n[i] != -1)
                         vs[i].n = model->ns.d[face->n[i]];
-                    vs[i] = world2viewport(vs[i], s);
                 }
 
                 for (int lid = 0; lid < s->ls.l; lid++)
                 {
-                    el.v = s->ls.d[lid].pos;
-                    el = world2viewport(el, s);
-                    v3_t dir = v3_sub(el.v, wa.v);
+                    //if((lights & (1 << lid)) == 0)
+                    //    continue;
+
+                    el.wv = s->ls.d[lid].pos;
+                    v3_t dir = v3_sub(el.wv, a.wv);
                     float d = sqrt(v3_dot(dir, dir));
-                    float ind = intersect_triangle(wa.v, dir, vs[0].v, vs[1].v, vs[2].v);
+                    float ind = intersect_triangle(a.wv, dir, vs[0].wv, vs[1].wv, vs[2].wv);
 
-                    /*if(0 && ind ==1)
+                    float eps = 0;//0.005;//0.040;
+                    if (0 + eps < ind && ind < 1 - eps)
                     {
-                        console_log("wa(%lf %lf %lf)", wa.v.x, wa.v.y, wa.v.z);
-                        console_log("li(%lf %lf %lf)", el.v.x, el.v.y, el.v.z);
-                        console_log("vs0(%lf %lf %lf)", vs[0].v.x, vs[0].v.y, vs[0].v.z);
-                        console_log("vs1(%lf %lf %lf)", vs[1].v.x, vs[1].v.y, vs[1].v.z);
-                        console_log("vs2(%lf %lf %lf)", vs[2].v.x, vs[2].v.y, vs[2].v.z);
-                        console_log("dir(%lf %lf %lf)", dir.x,dir.y,dir.z);
-                        console_log("d=%lf", d);
-                        //abort();
-                    }*/
-
-                    if (ind == 0 || d < ind)
-                    {
-                        /*if (ind > 0){
-                        console_log("!ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
-                        //abort();
-                        }*/
-
-                        atten = 1 / (s->ls.d[lid].attens.c +
-                        s->ls.d[lid].attens.l * d +
-                        s->ls.d[lid].attens.q * d * d);
-
-                        dir = v3_norm(dir);
-                        float alpha = v3_dot(dir, vs[0].n);
-                        alpha = alpha < 0 ? -alpha : alpha;
-                        alpha = 1;
-                        if ((lights & (1 << lid)) == 0)
-                            attens += atten * alpha;
-                        lights |= (1 << lid);
+                        lights &= ~(1 << lid);
+                        //console_log("!ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
                     }
                     else
                     {
                         //console_log("ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
-                        //abort();
                     }
                 }
             }
             else
             {
                 // TODO (15.11.2018): yield_face_triangle
+                abort();
             }
         }
+    }
+
+    for (int lid = 0; lid < s->ls.l; lid++)
+    {
+        if((lights & (1 << lid)) == 0)
+            continue;
+        //console_log("LIGHT %d", lid);
+
+        el.wv = s->ls.d[lid].pos;
+        v3_t dir = v3_sub(el.wv, a.wv);
+        float d = sqrt(v3_dot(dir, dir));
+
+        atten = 1 / (s->ls.d[lid].attens.c +
+        s->ls.d[lid].attens.l * d +
+        s->ls.d[lid].attens.q * d * d);
+
+        dir = v3_norm(dir);
+        float alpha = v3_dot(dir, vs[0].wn);
+        alpha = alpha < 0 ? -alpha : alpha;
+        alpha = 1; // TODO
+        attens += atten * alpha;
+        lights |= (1 << lid);
     }
 
     //console_log("K %lf", attens);
@@ -194,22 +203,27 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     model_t *m = model_init(NULL, 1000, 1000, 1000);
 
     vertex_t vs[] = {
+        {100, 0, -5},
         {100, 100, -5},
-        {100, 150, -5},
-        {150, 150, -5},
-        {150, 100, -5},
+        {200, 100, -5},
+        {200, 0, -5},
 
-        {100, 100, 45},
-        {100, 150, 45},
-        {150, 150, 45},
-        {150, 100, 45},
+        {100, 0, 95},
+        {100, 100, 95},
+        {200, 100, 95},
+        {200, 0, 95},
 
         {0, 0, 0},
         {50, 0, 0},
-        {0, 50, 0},
-        {0, 0, 50}
+        {0, 100, 0},
+        {0, 0, 50},
+
+        {-300, 0, 300},
+        {-300, 0, -300},
+        {300, 0, -300},
+        {300, 0, 300}
     };
-    m = model_add_vertices_arr(m, vs, 12);
+    m = model_add_vertices_arr(m, vs, 12 + 4);
 
     normalid_t nid[] = {-1, -1, -1};
     vertexid_t vid[3] = {0, 1, 2};
@@ -251,6 +265,12 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     memcpy(vid, &((vertexid_t[3]){8, 9, 11}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
+
+    memcpy(vid, &((vertexid_t[3]){12, 13, 14}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){14, 15, 12}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
+
     m->props.mat.ambient.r = 0;
     m->props.mat.ambient.g = 0;
     m->props.mat.ambient.b = 0;
@@ -264,17 +284,50 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->ls.d = heap_alloc(sizeof (light_t) * 2);
     s->ls.l = 1;
 
-    s->ls.d[0].pos = (v3_t){5, 5, -2};
-    s->ls.d[0].attens = (light_attens_t){1, 0.0, 0};
+    s->ls.d[0].pos = (v3_t){300, 180, 160};//-10, 60, 45
+    s->ls.d[0].attens = (light_attens_t){1, 0.001, 0};
     s->ls.d[0].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.specular = (rgba_t){255, 255, 255, 255};
 
-    s->ls.d[1].pos = (v3_t){210, 210, 700};
+    s->ls.d[1].pos = (v3_t){300, 180, -40};
     s->ls.d[1].attens = (light_attens_t){1, 0.01, 0};
     s->ls.d[1].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[1].cols.diffuse = (rgba_t){255, 255, 255, 255};
     s->ls.d[1].cols.specular = (rgba_t){255, 255, 255, 255};
+
+    vertex_t vt[] = {
+        {200, 200, 0},
+        {200, -200, 0},
+        {-200, 200, 0},
+
+        {50, 199, -1}, //L
+        {50, 199, 90} //P
+    };
+
+    evertex_t evt[5];
+    for (int i = 0; i < 5; i++)
+    {
+        evt[i].v = vt[i];
+        //evt[i] = world2viewport(evt[i], s);
+    }
+
+    v3_t dir = v3_sub(evt[3].v, evt[4].v);
+    float d = sqrt(v3_dot(dir, dir));
+    float ind = intersect_triangle(evt[4].v, dir, evt[0].v, evt[1].v, evt[2].v);
+    console_log("TEST %lf %lf", d, ind);
+
+    v3_t v = (v3_t){111.27630615234375, 109.13348388671875, 45};
+    dir = v3_sub(s->ls.d[0].pos, v);
+    d = sqrt(v3_dot(dir, dir));
+    console_log("TEST!(%lf %lf %lf)", s->ls.d[0].pos.x, s->ls.d[0].pos.y, s->ls.d[0].pos.z);
+    console_log("TEST!(%lf %lf %lf)", dir.x, dir.y, dir.z);
+    console_log("TEST!(%lf %lf %lf)", vs[8].x, vs[8].y, vs[8].z);
+    console_log("TEST!(%lf %lf %lf)", vs[9].x, vs[9].y, vs[9].z);
+    console_log("TEST!(%lf %lf %lf)", vs[10].x, vs[10].y, vs[10].z);
+    ind = intersect_triangle(v, dir, vs[8], vs[9], vs[10]);
+    console_log("TEST! %lf %lf", d, ind);
+    //abort();
 
     // End of test part
 
@@ -373,4 +426,7 @@ void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
     s->viewport_props.center = v3_add(center, s->viewport_props.eye);
 
     calculate_mtrx(s);
+
+    s->ls.d[0].pos.x += hor * 180 / 3.1415 * 10;
+    s->ls.d[0].pos.z += vert * 180 / 3.1415 * 10;
 }

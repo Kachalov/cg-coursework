@@ -13,7 +13,7 @@ void frame(scene_t *s, int wireframe)
     model_t **model;
     wireframe_mode = wireframe;
 
-    draw_grid(s, 20, 25);
+    //draw_grid(s, 20, 25);
     draw_lights(s);
 
     model = s->models.d;
@@ -157,21 +157,28 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
     {
         for (int i = 0; i < 3; i++)
         {
-            vs[i].v = model->vs.d[face->v[i]];
+            vs[i] = vertex2evertex(
+                model->vs.d[face->v[i]],
+                face->n[i] != -1 ? model->ns.d[face->n[i]] : (v3_t){0, 0, 0},
+                s
+            );
+            //vs[i].v = model->vs.d[face->v[i]];
             /*console_log("%lf %lf %lf", model->vs.d[face->v[i]].x, model->vs.d[face->v[i]].y, model->vs.d[face->v[i]].z);
             console_log("%d", face->v[i]);*/
-            if (face->n[i] != -1)
-                vs[i].n = model->ns.d[face->n[i]];
+            //if (face->n[i] != -1)
+            //    vs[i].n = model->ns.d[face->n[i]];
         }
 
         for (int i = 0; i < 3; i++)
         {
             if (model->props.shaders.v)
                 vs[i] = model->props.shaders.v(vs, i, s);
-            console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
-            vs[i] = world2viewport(vs[i], s);
+            //console_log("%lf %lf %lf", vs[i].wv.x, vs[i].wv.y, vs[i].wv.z);
+            //vs[i] = world2viewport(vs[i], s);
+            // TODO: TEST PART
             memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));
-            console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
+            // TODO: END OF TEST PART
+            //console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
         }
 
         draw_fragment(s, vs, &model->props);
@@ -222,8 +229,8 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
 {
     evertex_t tmp;
     yield_evertex_t ya, yb, ytmp;
-    console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
-    console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);
+    //console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
+    //console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);
 
     if (wireframe_mode == 0) {
     int min_y = vs[0].v.y;//min(s->canv->h, max(0, vs[0].v.y));
@@ -383,7 +390,6 @@ void draw_triangle_row(
 
 yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
 {
-    // TODO(27.11.18): Evertex normal
     yield_evertex_t yv;
     
     yv.d = steps == 0 ? 0 : 1.0 / steps;
@@ -397,6 +403,19 @@ yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
     yv.dev.v.x = (a.v.x - b.v.x) * yv.d;
     yv.dev.v.y = (a.v.y - b.v.y) * yv.d;
     yv.dev.v.z = (a.v.z - b.v.z) * yv.d;
+    
+    yv.dev.wv.x = (a.wv.x - b.wv.x) * yv.d;
+    yv.dev.wv.y = (a.wv.y - b.wv.y) * yv.d;
+    yv.dev.wv.z = (a.wv.z - b.wv.z) * yv.d;
+    
+    yv.dev.n.x = (a.n.x - b.n.x) * yv.d;
+    yv.dev.n.y = (a.n.y - b.n.y) * yv.d;
+    yv.dev.n.z = (a.n.z - b.n.z) * yv.d;
+    
+    yv.dev.wn.x = (a.wn.x - b.wn.x) * yv.d;
+    yv.dev.wn.y = (a.wn.y - b.wn.y) * yv.d;
+    yv.dev.wn.z = (a.wn.z - b.wn.z) * yv.d;
+    
     yv.devc.r = (a.c.r - b.c.r) * yv.d;
     yv.devc.g = (a.c.g - b.c.g) * yv.d;
     yv.devc.b = (a.c.b - b.c.b) * yv.d;

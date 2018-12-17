@@ -65,6 +65,20 @@ evertex_t viewport2world(evertex_t v, scene_t *s)
     return r;
 }
 
+evertex_t vertex2evertex(vertex_t v, v3_t n, scene_t *s)
+{
+    evertex_t r;
+
+    r.wv = v;
+    r.wn = n;
+
+    r.v = v;
+    r.n = n;
+    r = world2viewport(r, s);
+
+    return r;
+}
+
 int16_t find_line_x(point_t a, point_t b, int16_t y)
 {
     if ((a.y <= b.y && (a.y > y || b.y < y)) ||
@@ -133,31 +147,45 @@ int16_t find_line_x(point_t a, point_t b, int16_t y)
 /**
  * http://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection
  */
-int intersect_triangle(v3_t from, v3_t dir, v3_t v0, v3_t v1, v3_t v2)
+float intersect_triangle(v3_t from, v3_t dir, v3_t v0, v3_t v1, v3_t v2)
 {
     v3_t e1 = v3_sub(v1, v0);
     v3_t e2 = v3_sub(v2, v0);
     v3_t pv = v3_cross(dir, e2);
     float det = v3_dot(e1, pv);
-    float r;
+    float t;
+
+    /*console_log("int v2(%lf %lf %lf)", v2.x, v2.y,v2.z);
+    console_log("int v1(%lf %lf %lf)", v1.x, v1.y,v1.z);
+    console_log("int v0(%lf %lf %lf)", v0.x, v0.y,v0.z);
+    console_log("int e1(%lf %lf %lf)", e1.x, e1.y,e1.z);
+    console_log("int e2(%lf %lf %lf)", e2.x, e2.y,e2.z);
+    console_log("int dir(%lf %lf %lf)", dir.x, dir.y,dir.z);
+    console_log("int pv(%lf %lf %lf)", pv.x, pv.y,pv.z);
+    console_log("INT %lf", det);*/
 
     if (fpclassify(det) == FP_ZERO)
-        return 0;
+        return -10;
 
     float inv_det = 1 / det;
     v3_t tv = v3_sub(from, v0);
+    //console_log("int tv(%lf %lf %lf)", tv.x, tv.y,tv.z);
     float u = v3_dot(tv, pv) * inv_det;
-
+    //console_log("int u %lf)", u);
     if (u < 0 || 1 < u)
-        return 0;
+        return -20;
 
     v3_t qv = v3_cross(tv, e1);
+    //console_log("int qv(%lf %lf %lf)", qv.x, qv.y,qv.z);
     float v = v3_dot(dir, qv) * inv_det;
+    //console_log("int v %lf)", v);
     if (v < 0 || 1 < u + v)
-        return 0;
+        return -30;
 
-    r = v3_dot(e2, qv) * inv_det;
-    return r;
+    //console_log("INTr %lf %lf", v3_dot(e2, qv), inv_det);
+    t = v3_dot(e2, qv) * inv_det;
+    //console_log("INTr=%lf)", t);
+    return t;
 }
 
 float v3_distance(v3_t a, v3_t b)
