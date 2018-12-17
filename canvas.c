@@ -28,6 +28,9 @@ void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
     int dy = abs(a.v.y - b.v.y);
     int steep = dy > dx;
 
+    if (dx == dy && dy == 0)
+        return;
+
     if (steep)
     {
         float tmp = a.v.x;

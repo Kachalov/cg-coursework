@@ -66,7 +66,7 @@ model_t *model_init(model_t *old, int v, int n, int f)
 model_t *model_add_vertices_arr(model_t *m, vertex_t *vs, int n)
 {
     if (m->vs.alloc - m->vs.l < n)
-    {console_log("ex v %d %d %d", m->vs.alloc, m->ns.alloc, m->fs.alloc);
+    {
         m = model_init(
             m, m->vs.alloc * 2 - m->vs.l >= n ? m->vs.alloc * 2 : m->vs.alloc + n,
             m->ns.alloc, m->fs.alloc);
@@ -77,6 +77,25 @@ model_t *model_add_vertices_arr(model_t *m, vertex_t *vs, int n)
     for (int i = 0; i < n; i++, src++, dst++)
         *dst = *src;
     m->vs.l += n;
+
+    return m;
+}
+
+model_t *model_add_normals_arr(model_t *m, v3_t *ns, int n)
+{
+    if (m->ns.alloc - m->ns.l < n)
+    {
+        m = model_init(
+            m, m->vs.alloc,
+            m->ns.alloc * 2 - m->ns.l >= n ? m->ns.alloc * 2 : m->ns.alloc + n,
+            m->fs.alloc);
+    }
+
+    vertex_t *dst = m->ns.d + m->ns.l;
+    vertex_t *src = ns;
+    for (int i = 0; i < n; i++, src++, dst++)
+        *dst = *src;
+    m->ns.l += n;
 
     return m;
 }

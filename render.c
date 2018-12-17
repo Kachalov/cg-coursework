@@ -13,7 +13,7 @@ void frame(scene_t *s, int wireframe)
     model_t **model;
     wireframe_mode = wireframe;
 
-    //draw_grid(s, 20, 25);
+    draw_grid(s, 20, 25);
     draw_lights(s);
 
     model = s->models.d;
@@ -174,6 +174,7 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
             if (model->props.shaders.v)
                 vs[i] = model->props.shaders.v(vs, i, s);
             //console_log("%lf %lf %lf", vs[i].wv.x, vs[i].wv.y, vs[i].wv.z);
+            //console_log("%lf %lf %lf", vs[i].n.x, vs[i].n.y, vs[i].n.z);
             //vs[i] = world2viewport(vs[i], s);
             // TODO: TEST PART
             memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));

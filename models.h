@@ -58,5 +58,6 @@ typedef struct model_st {
 
 model_t *model_init(model_t *m, int v, int n, int f);
 model_t *model_add_vertices_arr(model_t *m, vertex_t *vs, int n);
+model_t *model_add_normals_arr(model_t *m, v3_t *ns, int n);
 model_t *model_add_face_arr(model_t *m, vertexid_t *vs, normalid_t *ns, int n);
 face_t model_face_static_init(int n);

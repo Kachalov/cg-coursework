@@ -7,6 +7,8 @@
 #include "shaders.h"
 
 
+int wireframe_mode;
+
 typedef struct evertex_st {
     vertex_t v;
     vertex_t wv;

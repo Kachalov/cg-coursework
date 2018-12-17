@@ -9,7 +9,10 @@ int sign (int x)
 
 double pow2 (float x, int e)
 {
-    return x * x;
+    float r = x;
+    for (int i = 1; i < e; i++)
+        r *= x;
+    return r;
 }
 
 int int_inter(int a, int b, float t)

@@ -1,6 +1,8 @@
     var scrcont = document.getElementById("screen-container");
     document.getElementById("screen").height = scrcont.clientHeight;
 document.getElementById("screen").width = scrcont.clientWidth;
+document.getElementById('scr-size').innerHTML = scrcont.clientWidth + ' x ' +
+    scrcont.clientHeight;
 
 
     function setpixelated(context){

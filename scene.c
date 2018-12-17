@@ -22,6 +22,21 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     r.pos.y = a.v.y;
     //return r;
 
+    /*v3_t p = a.wv;
+    v3_t l = v3_norm(v3_sub(s->ls.d[0].pos, p));
+    v3_t v = v3_norm(v3_sub(s->viewport_props.eye, p));
+    v3_t n = a.wn;
+
+    v3_t vn = v3_sub((v3_t){0, 0, 0}, v);
+    v3_t vr = v3_sub((v3_t){0, 0, 0}, v3_sub(vn, v3_scale(n, 2 * v3_dot(n, v))));
+
+    float id = fmax(v3_dot(n, l), 0);
+    float is = pow2(fmax(v3_dot(l, vr), 0), 2);
+    r.col = rgba_scale3(r.col, id + is);*/
+
+    return r;
+
+
     static int calls = 0;
     if(calls++ < 500 || calls > 600)
     {
@@ -119,11 +134,23 @@ evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
 {
     evertex_t r = vs[i];
 
-    v3_t a, b;
+    //v3_t a, b;
 
-    a = v3_sub(vs[1].v, vs[0].v);
-    b = v3_sub(vs[2].v, vs[0].v);
-    r.n = v3_cross(a, b);
+    //a = v3_sub(vs[1].v, vs[0].v);
+    //b = v3_sub(vs[2].v, vs[0].v);
+    //r.n = v3_cross(a, b);
+
+    if (wireframe_mode)
+    {
+        evertex_t ea, eb;
+        mat_t mat;
+        mat.ambient = (rgba_t){255, 0, 0, 255};
+        ea.v = v3_add(vs[i].wv, v3_scale(vs[i].wn, 5));
+        eb.v = v3_add(vs[i].wv, v3_scale(vs[i].wn, 20));
+        ea = world2viewport(ea, s);
+        eb = world2viewport(eb, s);
+        draw_line_3d(s, ea, eb, mat_shader_f, &mat);
+    }
 
     r.c = (rgba_t){255 * (i == 0), 255 * (i == 1), 255 * (i == 2), 255};
 
@@ -153,7 +180,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->models.l = 0;
 
 
-    s->viewport_props.eye = (v3_t){0, 0, -300};//{1, 0.4, -1};
+    s->viewport_props.eye = (v3_t){0, 0, -400};//{1, 0.4, -1};
     s->viewport_props.center = (v3_t){0, 0, 0};
     s->viewport_props.up = (v3_t){0, 1, 0};
 
@@ -225,37 +252,53 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     };
     m = model_add_vertices_arr(m, vs, 12 + 4);
 
-    normalid_t nid[] = {-1, -1, -1};
+    // TODO: To avoid calling memset
+    int y = 0;
+    v3_t ns[] = {
+        {0, y, -1}, // front
+        {0, 0, 1}, // back
+        {-1, 0, 0}, // left
+        {1, 0, 0}, // right
+        {0, 1, 0}, // up
+        {0, -1, 0} // down
+    };
+    m = model_add_normals_arr(m, ns, 6);
+
+    normalid_t nid[] = {0, 0, 0};
     vertexid_t vid[3] = {0, 1, 2};
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){2, 3, 0}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
+    memcpy(nid, &((normalid_t[3]){1, 1, 1}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){4, 5, 6}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){6, 7, 4}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
+    memcpy(nid, &((normalid_t[3]){2, 2, 2}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){0, 1, 5}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){5, 4, 0}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
+    memcpy(nid, &((normalid_t[3]){3, 3, 3}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){2, 3, 6}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){6, 7, 3}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
+    memcpy(nid, &((normalid_t[3]){4, 4, 4}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){1, 2, 5}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){5, 6, 2}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
+    memcpy(nid, &((normalid_t[3]){5, 5, 5}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){3, 0, 7}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){7, 4, 0}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
-
     ///////
 
     memcpy(vid, &((vertexid_t[3]){8, 9, 10}), sizeof(vertexid_t[3]));
@@ -266,6 +309,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     m = model_add_face_arr(m, vid, nid, 3);
 
 
+    memcpy(nid, &((normalid_t[3]){4, 4, 4}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){12, 13, 14}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){14, 15, 12}), sizeof(vertexid_t[3]));
@@ -276,7 +320,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     m->props.mat.ambient.b = 0;
     m->props.mat.ambient.a = 255;
 
-    m->props.shaders.f = test_shader_f;
+    m->props.shaders.f = phong_shader_f;
     m->props.shaders.v = test_shader_v;
 
     scene_add_model(s, m);
@@ -284,13 +328,13 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->ls.d = heap_alloc(sizeof (light_t) * 2);
     s->ls.l = 1;
 
-    s->ls.d[0].pos = (v3_t){300, 180, 160};//-10, 60, 45
+    s->ls.d[0].pos = (v3_t){150, 50, 50};//-10, 60, 45
     s->ls.d[0].attens = (light_attens_t){1, 0.001, 0};
     s->ls.d[0].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.specular = (rgba_t){255, 255, 255, 255};
 
-    s->ls.d[1].pos = (v3_t){300, 180, -40};
+    s->ls.d[1].pos = (v3_t){300, 180, 40};
     s->ls.d[1].attens = (light_attens_t){1, 0.01, 0};
     s->ls.d[1].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[1].cols.diffuse = (rgba_t){255, 255, 255, 255};
@@ -418,12 +462,12 @@ void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
         0, sin(vert), cos(vert)
     };
 
-    v3_t center = s->viewport_props.center;
+    /*v3_t center = s->viewport_props.center;
     center = v3_sub(center, s->viewport_props.eye);
 
     center = m3_v3t_mul(&my, &center);
     center = m3_v3t_mul(&mx, &center);
-    s->viewport_props.center = v3_add(center, s->viewport_props.eye);
+    s->viewport_props.center = v3_add(center, s->viewport_props.eye);*/
 
     calculate_mtrx(s);
 
