@@ -99,8 +99,10 @@ body {
         <div class="form-group form-check">
     <input type="checkbox" class="form-check-input" id="wireframe-mode">
     <label class="form-check-label w-100" for="wireframe-mode">Wireframe</label><br/>
+            <input type="checkbox" class="form-check-input" id="zbuf-mode">
+    <label class="form-check-label w-100" for="zbuf-mode">Zbuf</label><br/>
   </div>
-        <button class="btn btn-success w-100" onclick="(function(){nextFrame(document.getElementById('wireframe-mode').checked + 0)})();">Render frame</button>
+        <button class="btn btn-success w-100" onclick="nextFrame()">Render frame</button>
     </div>
   </div>
 </div>
@@ -172,7 +174,17 @@ body {
         </div>
         <input type="text" class="form-control" id="light-z" placeholder="" value="0">
       </div>
-        <button class="btn btn-success w-100 mt-1" disabled onclick="(function(){})();">Add light</button>
+        <button class="btn btn-success w-100 mt-1" onclick="(
+            function(){
+                let x = Number($('#light-x').val()),
+                    y = Number($('#light-y').val()),
+                    z = Number($('#light-z').val()),
+                    rgb = $('#light-color .colorpicker-color')
+                    .css('background-color').match(/\d+/g);
+                let rgba = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + (255);
+                waFuns.scene_create_light(waScene, x, y, z, rgba);
+                nextFrame();
+            })();">Add light</button>
     </div>
   </div>
 </div>
@@ -205,7 +217,8 @@ body {
       $('#light-color, #cube-color').colorpicker({
       color: '#FFFFFF',
       inline: true,
-      container: true
+      container: true,
+      useAlpha: false
     });
 
       // Example using an event, to change the color of the .jumbotron background:

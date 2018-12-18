@@ -27,21 +27,42 @@ pixel_t phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 {
     pixel_t r;
 
-    r.col = a.c;
     r.pos.x = a.v.x;
     r.pos.y = a.v.y;
 
+    v3_t id = {0, 0, 0};
+    v3_t is = {0, 0, 0};
+    v3_t ia = {0, 0, 0};
+    v3_t amb;
+
     v3_t p = a.wv;
-    v3_t l = v3_norm(v3_sub(s->ls.d[0].pos, p));
     v3_t v = v3_norm(v3_sub(s->viewport_props.eye, p));
     v3_t n = a.wn;
 
     v3_t vn = v3_sub((v3_t){0, 0, 0}, v);
     v3_t vr = v3_sub((v3_t){0, 0, 0}, v3_sub(vn, v3_scale(n, 2 * v3_dot(n, v))));
 
-    float id = fmax(v3_dot(n, l), 0);
-    float is = pow2(fmax(v3_dot(l, vr), 0), 2);
-    r.col = rgba_scale3(r.col, id + is);
+    for (int lid = 0; lid < s->ls.l; lid++)
+    {
+        amb = (v3_t){
+            s->ls.d[lid].cols.ambient.r,
+            s->ls.d[lid].cols.ambient.g,
+            s->ls.d[lid].cols.ambient.b
+        };
+        v3_t l = v3_norm(v3_sub(s->ls.d[lid].pos, p));
+
+        id = v3_add(id, v3_scale(amb, fmax(v3_dot(n, l), 0)));
+        is = v3_add(is, v3_scale(amb /*TODO: spec*/, pow2(fmax(v3_dot(l, vr), 0), 2)));
+    }
+
+    ia = v3_add(id, is);
+
+    r.col = (rgba_t){
+        clamp(a.c.r * ia.x / 255, 0, 255),
+        clamp(a.c.g * ia.y / 255, 0, 255),
+        clamp(a.c.b * ia.z / 255, 0, 255),
+        255
+    };
 
     return r;
 }

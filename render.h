@@ -7,7 +7,9 @@
 #include "shaders.h"
 
 
-int wireframe_mode;
+int render_mode;
+#define RENDER_WIREFRAME 1
+#define RENDER_ZBUF 2
 
 typedef struct evertex_st {
     vertex_t v;
@@ -37,7 +39,7 @@ typedef struct yield_evertex_st {
     double t;
 } yield_evertex_t;
 
-export void frame(scene_t *s, int wireframe_mode);
+export void frame(scene_t *s, int render_mode);
 void draw_grid(scene_t *s, int size, int count);
 void draw_lights(scene_t *s);
 void draw_model(scene_t *s, const model_t *model);
@@ -46,6 +48,7 @@ void draw_fragment(scene_t *s, evertex_t *vs, const model_props_t *props);
 export void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat);
 export void draw_triangle_row(scene_t *s, evertex_t *vs, shader_f_t shf,
     const mat_t *mat, int y, yield_evertex_t *ya, yield_evertex_t *yb);
+void draw_zbuf(scene_t *s);
 
 #define YIELD_EVERTEX(_ev, _yv) \
 (_yv)->ev.v.x += (_yv)->dev.v.x; \

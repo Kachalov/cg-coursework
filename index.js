@@ -59,7 +59,11 @@ webassembly
     var maxFps = 60;
     var delay = 0;
     var lastStatFps = maxFps;
-    function frame(wf_mode) {
+    function frame(render_mode) {
+        render_mode = render_mode === undefined ?
+            1 * document.getElementById('wireframe-mode').checked +
+            2 * document.getElementById('zbuf-mode').checked
+            : render_mode;
         //ctx.clearRect(0, 0, scrcont.clientHeight, scrcont.clientWidth);
         //setInterval(1000);
         /*for (var j = 0; j < scr бесcont.clientHeight; j++) {
@@ -72,7 +76,7 @@ webassembly
             var start = new Date().getTime();
 
             try {
-            exports.frame(scene, wf_mode);
+            exports.frame(scene, render_mode);
             } catch (e) {
                 alert(e);
             }
@@ -132,14 +136,14 @@ webassembly
         requestAnimationFrame(frame);
     };
         nextFrame = frame;
-        frame(0);
+        frame();
 
 
         var events = {};
         addEventListener("keydown", function(e) {
             events[e.keyCode] = true;
-            var hor = (events[37] === true ? 1 : 0) + (events[39] === true ? -1 : 0);
-            var vert = (events[38] === true ? 1 : 0) + (events[40] === true ? -1 : 0);
+            let hor = (events[37] === true ? 1 : 0) + (events[39] === true ? -1 : 0);
+            let vert = (events[38] === true ? 1 : 0) + (events[40] === true ? -1 : 0);
             switch(e.keyCode) {
                 case 37:  // если нажата клавиша влево
                     break;
@@ -151,24 +155,29 @@ webassembly
                     break;
             }
 
+            if (hor === 0 && vert === 0)
+                return;
+
             waFuns.move_viewport(waScene, hor/180*3.1415,  vert/180*3.1415, 0, 0);
-            nextFrame(1);
+            nextFrame();
         });
 
         addEventListener("keyup", function(e) {
+            if (events[e.keyCode] !== true)
+                return;
+
+            let allUp = true;
             events[e.keyCode] = false;
-            var allUp = true;
-            for (var ev in events)
-            {
+
+            for (let ev in events)
                 if (ev === true)
                 {
                     allUp = false;
                     break;
                 }
-            }
 
             if (allUp)
-                nextFrame(0);
+                nextFrame();
         });
     })
     .catch(e => {alert(e)});

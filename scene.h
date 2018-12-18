@@ -73,8 +73,10 @@ scene_t *scene;
 
 scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf);
 void scene_free(scene_t *s);
-int scene_add_model(scene_t *s, model_t *model);
+export int scene_add_model(scene_t *s, model_t *model);
 zbuf_t *zbuf_init(int w, int h, uint16_t *data);
 void clear(scene_t *s);
 export void calculate_mtrx(scene_t *s);
 export void move_viewport(scene_t *s, float hor, float vert, float tang, float norm);
+export int scene_add_light(scene_t *s, light_t *light);
+export int scene_create_light(scene_t *s, int x, int y, int z, int ambient);

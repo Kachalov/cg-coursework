@@ -6,12 +6,14 @@
 #include "shaders.h"
 
 
-int wireframe_mode;
+int render_mode;
 
-void frame(scene_t *s, int wireframe)
+void frame(scene_t *s, int render)
 {
     model_t **model;
-    wireframe_mode = wireframe;
+    render_mode = render;
+    console_log("RENDER MODE: %d", render_mode);
+    console_log("WIREFRAME: %d", render_mode & RENDER_WIREFRAME);
 
     draw_grid(s, 20, 25);
     draw_lights(s);
@@ -21,6 +23,9 @@ void frame(scene_t *s, int wireframe)
     {
         draw_model(s, *model);
     }
+
+    if ((render_mode & RENDER_ZBUF) != 0)
+        draw_zbuf(s);
 }
 
 void draw_grid(scene_t *s, int size, int count)
@@ -77,9 +82,10 @@ void draw_lights(scene_t *s)
 
     const int r1 = 25, r2 = 10;
 
-    mat.ambient = (rgba_t){255, 255, 255, 255};
     for (int lid = 0; lid < s->ls.l; lid++)
     {
+
+        mat.ambient = s->ls.d[lid].cols.ambient;
         a.v = b.v = s->ls.d[lid].pos;
         a.v.x -= r1;
         b.v.x += r1;
@@ -233,7 +239,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     //console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
     //console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);
 
-    if (wireframe_mode == 0) {
+    if ((render_mode & RENDER_WIREFRAME) == 0) {
     int min_y = vs[0].v.y;//min(s->canv->h, max(0, vs[0].v.y));
     int mid_y = vs[1].v.y;//min(s->canv->h, max(0, vs[1].v.y));
     int max_y = vs[2].v.y;//min(s->canv->h, max(0, vs[2].v.y));
@@ -304,7 +310,7 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
 
     pixel_t ps[3];
 
-    if (wireframe_mode) {
+    if ((render_mode & RENDER_WIREFRAME) != 0) {
     for (int i = 0; i < 3; i++)
     {
         ps[i].pos.x = vs[i].v.x;
@@ -428,4 +434,14 @@ yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
 void yield_evertex(evertex_t *ev, yield_evertex_t *yv)
 {
     YIELD_EVERTEX(ev, yv);
+}
+
+void draw_zbuf(scene_t *s)
+{
+    for (int y = 0; y < s->canv->h; y++)
+        for (int x = 0; x < s->canv->w; x++)
+        {
+            int z = s->zbuf->data[y * s->canv->w + x] * 1.0 / 255;
+            SET_PIXEL(s->canv, x, y, &((rgba_t){z, z, z, 255}));
+        }
 }

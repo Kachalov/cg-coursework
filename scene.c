@@ -140,7 +140,7 @@ evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
     //b = v3_sub(vs[2].v, vs[0].v);
     //r.n = v3_cross(a, b);
 
-    if (wireframe_mode)
+    if ((render_mode & RENDER_WIREFRAME) != 0)
     {
         evertex_t ea, eb;
         mat_t mat;
@@ -245,10 +245,10 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
         {0, 100, 0},
         {0, 0, 50},
 
-        {-300, 0, 300},
-        {-300, 0, -300},
-        {300, 0, -300},
-        {300, 0, 300}
+        {-300, -0.2, 300},
+        {-300, -0.2, -300},
+        {300, -0.2, -300},
+        {300, -0.2, 300}
     };
     m = model_add_vertices_arr(m, vs, 12 + 4);
 
@@ -301,12 +301,12 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     m = model_add_face_arr(m, vid, nid, 3);
     ///////
 
-    memcpy(vid, &((vertexid_t[3]){8, 9, 10}), sizeof(vertexid_t[3]));
+    /*memcpy(vid, &((vertexid_t[3]){8, 9, 10}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){8, 10, 11}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){8, 9, 11}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
+    m = model_add_face_arr(m, vid, nid, 3);*/
 
 
     memcpy(nid, &((normalid_t[3]){4, 4, 4}), sizeof(normalid_t[3]));
@@ -328,9 +328,9 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->ls.d = heap_alloc(sizeof (light_t) * 2);
     s->ls.l = 1;
 
-    s->ls.d[0].pos = (v3_t){150, 50, 50};//-10, 60, 45
+    s->ls.d[0].pos = (v3_t){-150, 50, -50};//-10, 60, 45
     s->ls.d[0].attens = (light_attens_t){1, 0.001, 0};
-    s->ls.d[0].cols.ambient = (rgba_t){255, 255, 255, 255};
+    s->ls.d[0].cols.ambient = (rgba_t){255, 242, 194, 255};
     s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
     s->ls.d[0].cols.specular = (rgba_t){255, 255, 255, 255};
 
@@ -473,4 +473,37 @@ void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
 
     s->ls.d[0].pos.x += hor * 180 / 3.1415 * 10;
     s->ls.d[0].pos.z += vert * 180 / 3.1415 * 10;
+}
+
+export
+int scene_add_light(scene_t *s, light_t *light)
+{
+    int so = s->ls.l;
+    int sn = s->ls.l + 1;
+    light_t *ptr = heap_realloc(s->ls.d, sizeof(light_t) * sn);
+    if (!ptr)
+        return -1;
+
+    s->ls.d = ptr;
+    s->ls.l = sn;
+    s->ls.d[so] = *light;
+
+    return so;
+}
+
+export
+int scene_create_light(scene_t *s, int x, int y, int z, int ambient)
+{
+    light_t l;
+    l.pos = (v3_t){x, y, z};
+    l.attens = (light_attens_t){1, 0, 0};
+    l.cols.ambient = (rgba_t){
+        (ambient >> 24) & 255,
+        (ambient >> 16) & 255,
+        (ambient >> 8) & 255,
+        (ambient) & 255};
+    l.cols.diffuse = (rgba_t){255, 255, 255, 255};
+    l.cols.specular = (rgba_t){255, 255, 255, 255};
+
+    return scene_add_light(s, &l);
 }
