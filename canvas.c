@@ -192,3 +192,18 @@ rgba_t rgba_scale3(rgba_t a, float k)
         a.a
     };
 }
+
+rgba_t int2rgba(int rgba)
+{
+    return (rgba_t){
+        (rgba >> 24) & 255,
+        (rgba >> 16) & 255,
+        (rgba >> 8) & 255,
+        (rgba) & 255
+    };
+}
+
+int rgba2int(rgba_t rgba)
+{
+    return (rgba.r << 24) + (rgba.g << 16) + (rgba.b << 8) + (rgba.a);
+}

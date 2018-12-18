@@ -152,8 +152,6 @@ evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
         draw_line_3d(s, ea, eb, mat_shader_f, &mat);
     }
 
-    r.c = (rgba_t){255 * (i == 0), 255 * (i == 1), 255 * (i == 2), 255};
-
     return r;
 }
 // End of test part
@@ -187,9 +185,14 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->perspective_props.angle = 30;
     s->perspective_props.ratio = 1.0 * w / h;
     s->perspective_props.near = 0.1;
-    s->perspective_props.far = 1000;
+    s->perspective_props.far = 2000;
 
     calculate_mtrx(s);
+
+    scene_create_cube(s, 100, 0, -5, 0, rgba2int((rgba_t){255, 140, 80, 255}),
+        100, 100, 100);
+
+    scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 255}));
 
     // TODO (27.11.18): Remove test part
     {m4_t m = s->mvp_mtrx;
@@ -245,10 +248,10 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
         {0, 100, 0},
         {0, 0, 50},
 
-        {-300, -0.2, 300},
-        {-300, -0.2, -300},
-        {300, -0.2, -300},
-        {300, -0.2, 300}
+        {-300, 300, -0.8},
+        {-300, -300, -0.8},
+        {300, -300, -0.8},
+        {300, 300, -0.8}
     };
     m = model_add_vertices_arr(m, vs, 12 + 4);
 
@@ -266,7 +269,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
 
     normalid_t nid[] = {0, 0, 0};
     vertexid_t vid[3] = {0, 1, 2};
-    m = model_add_face_arr(m, vid, nid, 3);
+    /*m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){2, 3, 0}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
@@ -298,7 +301,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     memcpy(vid, &((vertexid_t[3]){3, 0, 7}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){7, 4, 0}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
+    m = model_add_face_arr(m, vid, nid, 3);*/
     ///////
 
     /*memcpy(vid, &((vertexid_t[3]){8, 9, 10}), sizeof(vertexid_t[3]));
@@ -309,15 +312,15 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     m = model_add_face_arr(m, vid, nid, 3);*/
 
 
-    memcpy(nid, &((normalid_t[3]){4, 4, 4}), sizeof(normalid_t[3]));
+    memcpy(nid, &((normalid_t[3]){1, 1, 1}), sizeof(normalid_t[3]));
     memcpy(vid, &((vertexid_t[3]){12, 13, 14}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
     memcpy(vid, &((vertexid_t[3]){14, 15, 12}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
-    m->props.mat.ambient.r = 0;
-    m->props.mat.ambient.g = 0;
-    m->props.mat.ambient.b = 0;
+    m->props.mat.ambient.r = 255;
+    m->props.mat.ambient.g = 255;
+    m->props.mat.ambient.b = 255;
     m->props.mat.ambient.a = 255;
 
     m->props.shaders.f = phong_shader_f;
@@ -325,10 +328,10 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
 
     scene_add_model(s, m);
 
-    s->ls.d = heap_alloc(sizeof (light_t) * 2);
+    /*s->ls.d = heap_alloc(sizeof (light_t) * 2);
     s->ls.l = 1;
 
-    s->ls.d[0].pos = (v3_t){-150, 50, -50};//-10, 60, 45
+    s->ls.d[0].pos = (v3_t){-150, 50, 50};//-10, 60, 45
     s->ls.d[0].attens = (light_attens_t){1, 0.001, 0};
     s->ls.d[0].cols.ambient = (rgba_t){255, 242, 194, 255};
     s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
@@ -338,9 +341,9 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->ls.d[1].attens = (light_attens_t){1, 0.01, 0};
     s->ls.d[1].cols.ambient = (rgba_t){255, 255, 255, 255};
     s->ls.d[1].cols.diffuse = (rgba_t){255, 255, 255, 255};
-    s->ls.d[1].cols.specular = (rgba_t){255, 255, 255, 255};
+    s->ls.d[1].cols.specular = (rgba_t){255, 255, 255, 255};*/
 
-    vertex_t vt[] = {
+    /*vertex_t vt[] = {
         {200, 200, 0},
         {200, -200, 0},
         {-200, 200, 0},
@@ -371,7 +374,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     console_log("TEST!(%lf %lf %lf)", vs[10].x, vs[10].y, vs[10].z);
     ind = intersect_triangle(v, dir, vs[8], vs[9], vs[10]);
     console_log("TEST! %lf %lf", d, ind);
-    //abort();
+    //abort();*/
 
     // End of test part
 
@@ -471,8 +474,8 @@ void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
 
     calculate_mtrx(s);
 
-    s->ls.d[0].pos.x += hor * 180 / 3.1415 * 10;
-    s->ls.d[0].pos.z += vert * 180 / 3.1415 * 10;
+    s->ls.d[0].pos.x -= hor * 180 / 3.1415 * 10;
+    s->ls.d[0].pos.y += vert * 180 / 3.1415 * 10;
 }
 
 export
@@ -497,13 +500,67 @@ int scene_create_light(scene_t *s, int x, int y, int z, int ambient)
     light_t l;
     l.pos = (v3_t){x, y, z};
     l.attens = (light_attens_t){1, 0, 0};
-    l.cols.ambient = (rgba_t){
-        (ambient >> 24) & 255,
-        (ambient >> 16) & 255,
-        (ambient >> 8) & 255,
-        (ambient) & 255};
+    l.cols.ambient = int2rgba(ambient);
     l.cols.diffuse = (rgba_t){255, 255, 255, 255};
     l.cols.specular = (rgba_t){255, 255, 255, 255};
 
     return scene_add_light(s, &l);
+}
+
+export int scene_create_cube(scene_t *s, int x, int y, int z,
+    int shader, int color, int w, int h, int d)
+{
+    model_t *m = model_init(NULL, 8, 6, 12);
+    m->props.mat.ambient = int2rgba(color);
+
+    vertex_t vs[8];
+    float Z = 0; // TODO: Memset workaround
+    v3_t ns[6] = {
+        {0, 0, -1},
+        {0, 0, 1},
+        {-1, 0, 0},
+        {1, 0, 0},
+        {0, -1, Z},
+        {0, 1, 0},
+    };
+    m = model_add_normals_arr(m, ns, 6);
+
+    for (int i = 0; i < 8; i++)
+    {
+        vs[i] = (vertex_t){
+            x + w * ((i & 1) != 0),
+            y + h * ((i & 2) != 0),
+            z + d * ((i & 4) != 0)
+        };
+    }
+    m = model_add_vertices_arr(m, vs, 8);
+
+    m = model_add_face_arr(m, (vertexid_t[3]){0, 1, 2}, (normalid_t[3]){0, 0, 0}, 3);
+    m = model_add_face_arr(m, (vertexid_t[3]){2, 3, 1}, (normalid_t[3]){0, 0, 0}, 3);
+
+    m = model_add_face_arr(m, (vertexid_t[3]){4, 5, 6}, (normalid_t[3]){1, 1, 1}, 3);
+    m = model_add_face_arr(m, (vertexid_t[3]){6, 7, 5}, (normalid_t[3]){1, 1, 1}, 3);
+
+    m = model_add_face_arr(m, (vertexid_t[3]){0, 2, 4}, (normalid_t[3]){2, 2, 2}, 3);
+    m = model_add_face_arr(m, (vertexid_t[3]){4, 6, 2}, (normalid_t[3]){2, 2, 2}, 3);
+
+    m = model_add_face_arr(m, (vertexid_t[3]){1, 3, 5}, (normalid_t[3]){3, 3, 3}, 3);
+    m = model_add_face_arr(m, (vertexid_t[3]){5, 7, 3}, (normalid_t[3]){3, 3, 3}, 3);
+
+    m = model_add_face_arr(m, (vertexid_t[3]){0, 1, 4}, (normalid_t[3]){4, 4, 4}, 3);
+    m = model_add_face_arr(m, (vertexid_t[3]){4, 5, 1}, (normalid_t[3]){4, 4, 4}, 3);
+
+    m = model_add_face_arr(m, (vertexid_t[3]){2, 3, 6}, (normalid_t[3]){5, 5, 5}, 3);
+    m = model_add_face_arr(m, (vertexid_t[3]){6, 7, 3}, (normalid_t[3]){5, 5, 5}, 3);
+
+    m->props.shaders.f = phong_shader_f;
+    m->props.shaders.v = test_shader_v;
+
+    return scene_add_model(s, m);
+}
+
+export int scene_create_sphere(scene_t *s, int x, int y, int z,
+    int shader, int color, int segs, int r)
+{
+    return 0;
 }

@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "scene.h"
 #include "math.h"
+#include "shaders.h"
 
 
 evertex_t world2viewport(evertex_t v, scene_t *s)
@@ -38,15 +39,30 @@ evertex_t world2viewport(evertex_t v, scene_t *s)
         v3 = v3_scale(v3, 1.0/v4.w);
     r.n = m4_v3t_mul(&s->viewport_mtrx, &v3);*/
 
-    v3 = m4_v3t_mul(&(m4_t){
+    m3_t rx = make_rot_x((90 + 40) * 1.0/180*3.1415);
+    m3_t ry = make_rot_y((0) * 1.0/180*3.1415);
+    m3_t rz = make_rot_z((30) * 1.0/180*3.1415);
+    m3_t rr = m3_m3_mul(&rx, &ry);
+    rr = m3_m3_mul(&rr, &rz);
+    m4_t mr;
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+        {
+            ((float *)&mr)[i*4+j] = ((float *)&rr)[i*3+j];
+        }
+
+    mr.d[0].w = mr.d[1].w = mr.d[2].w = mr.d[3].x = mr.d[3].y = mr.d[0].z = 0;
+    mr.d[3].w = 1;
+
+    v3 = m4_v3t_mul(/*&(m4_t){
         sqrt(1./2), 0, -sqrt(1./2), 0,
         sqrt(1./6), sqrt(2./3), sqrt(1./6), 0,
         sqrt(1./3), -sqrt(1./3), sqrt(1./3), 0,
         0, 0, 0, 1
-    }, &r.v);
+    }*/&mr, &r.v);
     r.v = (v3_t){
-        -v3.x + s->canv->w / 2 - s->viewport_props.eye.x,
-        -v3.y + s->canv->h / 2 - s->viewport_props.eye.y,
+        v3.x + s->canv->w / 2,
+        v3.y + s->canv->h / 2,
         v3.z - s->viewport_props.eye.z
     };
 
@@ -258,5 +274,38 @@ m4_t make_projection(float angle, float ratio, float near, float far)
     m.d[1].x = m.d[1].z = m.d[1].w = \
     m.d[2].x = m.d[2].y = \
     m.d[3].x = m.d[3].y = m.d[3].w = 0;
+    return m;
+}
+
+m3_t make_rot_x(float a)
+{
+    m3_t m = {
+        1, 0, 0,
+        0, cos(a), -sin(a),
+        0, sin(a), cos(a)
+    };
+
+    return m;
+}
+
+m3_t make_rot_y(float a)
+{
+    m3_t m = {
+        cos(a), 0, sin(a),
+        0, 1, 0,
+        -sin(a), 0, cos(a)
+    };
+
+    return m;
+}
+
+m3_t make_rot_z(float a)
+{
+    m3_t m = {
+        cos(a), -sin(a), 0,
+        sin(a), cos(a), 0,
+        0, 0, 1
+    };
+
     return m;
 }

@@ -60,3 +60,5 @@ export
 void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color);
 void set_pixel_z(canvas_t *canv, zbuf_t *zbuf, int16_t x, int16_t y, int16_t z, rgba_t *color);
 rgba_t rgba_scale3(rgba_t a, float k);
+rgba_t int2rgba(int rgba);
+int rgba2int(rgba_t rgba);

@@ -15,7 +15,8 @@ void frame(scene_t *s, int render)
     console_log("RENDER MODE: %d", render_mode);
     console_log("WIREFRAME: %d", render_mode & RENDER_WIREFRAME);
 
-    draw_grid(s, 20, 25);
+    if (render_mode & RENDER_GRID)
+        draw_grid(s, 20, 26);
     draw_lights(s);
 
     model = s->models.d;
@@ -73,6 +74,15 @@ void draw_grid(scene_t *s, int size, int count)
         b = world2viewport(b, s);
         draw_line_3d(s, a, b, mat_shader_f, &mat);
     }
+
+    mat.ambient = (rgba_t){255, 0, 0, 255};
+    a.wv = a.v = (v3_t){0, 0, 200};
+    a = world2viewport(a, s);
+    a.v = v3_norm(v3_sub(a.wv, a.v));
+    a = world2viewport(a, s);
+    b.v.x = b.v.y = b.v.z = 0;
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
 }
 
 void draw_lights(scene_t *s)
@@ -168,6 +178,7 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
                 face->n[i] != -1 ? model->ns.d[face->n[i]] : (v3_t){0, 0, 0},
                 s
             );
+            vs[i].c = model->props.mat.ambient;
             //vs[i].v = model->vs.d[face->v[i]];
             /*console_log("%lf %lf %lf", model->vs.d[face->v[i]].x, model->vs.d[face->v[i]].y, model->vs.d[face->v[i]].z);
             console_log("%d", face->v[i]);*/
@@ -183,7 +194,7 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
             //console_log("%lf %lf %lf", vs[i].n.x, vs[i].n.y, vs[i].n.z);
             //vs[i] = world2viewport(vs[i], s);
             // TODO: TEST PART
-            memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));
+            //memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));
             // TODO: END OF TEST PART
             //console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
         }

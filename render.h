@@ -10,6 +10,7 @@
 int render_mode;
 #define RENDER_WIREFRAME 1
 #define RENDER_ZBUF 2
+#define RENDER_GRID 4
 
 typedef struct evertex_st {
     vertex_t v;

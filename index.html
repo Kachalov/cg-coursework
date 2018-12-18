@@ -101,6 +101,8 @@ body {
     <label class="form-check-label w-100" for="wireframe-mode">Wireframe</label><br/>
             <input type="checkbox" class="form-check-input" id="zbuf-mode">
     <label class="form-check-label w-100" for="zbuf-mode">Zbuf</label><br/>
+        <input type="checkbox" class="form-check-input" id="grid-mode">
+    <label class="form-check-label w-100" for="grid-mode">Grid</label><br/>
   </div>
         <button class="btn btn-success w-100" onclick="nextFrame()">Render frame</button>
     </div>
@@ -121,31 +123,103 @@ body {
   <div class="card-body">
     <h5 class="card-title">Add object</h5>
     <div class="card-text">
-        <label for="object-type">Type</label>
-    <select class="form-control" id="object-type">
+        <label class="mt-1" for="obj-type">Type</label>
+    <select class="form-control" id="obj-type">
       <option value="0">Cube</option>
       <option value="1">Sphere</option>
+      <option value="2">Cyllinder</option>
+      <option value="3">Thor</option>
     </select>
-        <div class="w-100" id="cube-color"></div>
+        <label class="mt-1" for="obj-shader">Shader</label>
+    <select class="form-control" id="obj-shader">
+      <option value="0">None</option>
+      <option value="1">Plain</option>
+      <option value="2">Lambert</option>
+        <option value="3">Guro</option>
+        <option value="4">Phong</option>
+        <option value="5">Blinn-Phong</option>
+    </select>
+        <div class="w-100 mt-1" id="obj-color"></div>
         <div class="input-group mt-1">
         <div class="input-group-prepend">
           <div class="input-group-text">x</div>
         </div>
-        <input type="text" class="form-control" id="object-x" placeholder="" value="0">
+        <input type="text" class="form-control" id="obj-x" placeholder="" value="0">
       </div>
         <div class="input-group mt-1">
         <div class="input-group-prepend">
           <div class="input-group-text">y</div>
         </div>
-        <input type="text" class="form-control" id="object-y" placeholder="" value="0">
+        <input type="text" class="form-control" id="obj-y" placeholder="" value="0">
       </div>
         <div class="input-group mt-1">
         <div class="input-group-prepend">
           <div class="input-group-text">z</div>
         </div>
-        <input type="text" class="form-control" id="object-z" placeholder="" value="0">
+        <input type="text" class="form-control" id="obj-z" placeholder="" value="0">
       </div>
-        <button class="btn btn-success w-100 mt-1" disabled onclick="(function(){})();">Add object</button>
+        <div class="input-group mt-1">
+        <div class="input-group-prepend">
+          <div class="input-group-text">Segments</div>
+        </div>
+        <input type="text" class="form-control" id="obj-segs" placeholder="" value="1">
+      </div>
+        <div class="input-group mt-1">
+        <div class="input-group-prepend">
+          <div class="input-group-text">Radius</div>
+        </div>
+        <input type="text" class="form-control" id="obj-r" placeholder="" value="50">
+      </div>
+        <div class="input-group mt-1">
+        <div class="input-group-prepend">
+          <div class="input-group-text">Width</div>
+        </div>
+        <input type="text" class="form-control" id="obj-w" placeholder="" value="100">
+      </div>
+        <div class="input-group mt-1">
+        <div class="input-group-prepend">
+          <div class="input-group-text">Height</div>
+        </div>
+        <input type="text" class="form-control" id="obj-h" placeholder="" value="100">
+      </div>
+        <div class="input-group mt-1">
+        <div class="input-group-prepend">
+          <div class="input-group-text">Deep</div>
+        </div>
+        <input type="text" class="form-control" id="obj-d" placeholder="" value="100">
+      </div>
+        <button class="btn btn-success w-100 mt-1" onclick="(function(){
+            let x = Number($('#obj-x').val()),
+                y = Number($('#obj-y').val()),
+                z = Number($('#obj-z').val()),
+                t = Number($('#obj-type').val()),
+                shader = Number($('#obj-shader').val()),
+                r = Number($('#obj-r').val()),
+                w = Number($('#obj-w').val()),
+                h = Number($('#obj-h').val()),
+                d = Number($('#obj-d').val()),
+
+                rgb = $('#obj-color .colorpicker-color')
+                .css('background-color').match(/\d+/g);
+            let rgba = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + (255);
+            switch (t){
+                case 0:
+                    waFuns.scene_create_cube(
+                        waScene, x, y, z, shader, rgba, w, h, d);
+                    break;
+                case 1:
+                    waFuns.scene_create_sphere(
+                        waScene, x, y, z, shader, segs, r);
+                    break;
+                case 2:
+                case 3:
+                default:
+                    alert('Not implemented');
+                    break;
+
+            }
+            nextFrame();
+        })();">Add object</button>
     </div>
   </div>
 </div>
@@ -214,7 +288,7 @@ body {
 <script>
     $(function () {
       // Basic instantiation:
-      $('#light-color, #cube-color').colorpicker({
+      $('#light-color, #obj-color').colorpicker({
       color: '#FFFFFF',
       inline: true,
       container: true,

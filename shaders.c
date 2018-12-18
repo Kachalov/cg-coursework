@@ -3,6 +3,7 @@
 #include "shaders.h"
 #include "canvas.h"
 #include "render.h"
+#include "utils.h"
 
 pixel_t mat_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 {
@@ -36,8 +37,31 @@ pixel_t phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     v3_t amb;
 
     v3_t p = a.wv;
-    v3_t v = v3_norm(v3_sub(s->viewport_props.eye, p));
+
+    // TODO (18.12.2018): Ortho viepoint
+    evertex_t evtmp;
+    //evtmp.wv = evtmp.v = (v3_t){0, 0, 1};
+    //evtmp = world2viewport(evtmp, s);
+    //evtmp.v = v3_sub(evtmp.wv, evtmp.v);
+    //evtmp = world2viewport(evtmp, s);
+
+    v3_t v;// = v3_norm(evtmp.v);
+    v = v3_norm(v3_sub(s->viewport_props.eye, p));
     v3_t n = a.wn;
+
+    static int calls = 0;
+    calls++;
+
+    if (calls <= 5)
+        console_log("NORM V %lf %lf %lf", v.x, v.y, v.z);
+
+    if (v3_dot(v, n) < 0)
+    {
+        //r.pos.x = -1;
+        //r.pos.y = -1;
+        //r.col.a = 0;
+        //return r;
+    }
 
     v3_t vn = v3_sub((v3_t){0, 0, 0}, v);
     v3_t vr = v3_sub((v3_t){0, 0, 0}, v3_sub(vn, v3_scale(n, 2 * v3_dot(n, v))));

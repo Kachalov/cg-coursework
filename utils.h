@@ -12,3 +12,6 @@ float v3_distance(v3_t a, v3_t b);
 m4_t make_view(v3_t eye, v3_t center, v3_t up);
 m4_t make_viewport(int x, int y, int w, int h);
 m4_t make_projection(float angle, float ratio, float near, float far);
+m3_t make_rot_x(float a);
+m3_t make_rot_y(float a);
+m3_t make_rot_z(float a);

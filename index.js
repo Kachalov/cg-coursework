@@ -62,7 +62,8 @@ webassembly
     function frame(render_mode) {
         render_mode = render_mode === undefined ?
             1 * document.getElementById('wireframe-mode').checked +
-            2 * document.getElementById('zbuf-mode').checked
+            2 * document.getElementById('zbuf-mode').checked +
+            4 * document.getElementById('grid-mode').checked
             : render_mode;
         //ctx.clearRect(0, 0, scrcont.clientHeight, scrcont.clientWidth);
         //setInterval(1000);
@@ -159,7 +160,7 @@ webassembly
                 return;
 
             waFuns.move_viewport(waScene, hor/180*3.1415,  vert/180*3.1415, 0, 0);
-            nextFrame();
+            nextFrame(1);
         });
 
         addEventListener("keyup", function(e) {

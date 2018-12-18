@@ -80,3 +80,7 @@ export void calculate_mtrx(scene_t *s);
 export void move_viewport(scene_t *s, float hor, float vert, float tang, float norm);
 export int scene_add_light(scene_t *s, light_t *light);
 export int scene_create_light(scene_t *s, int x, int y, int z, int ambient);
+export int scene_create_cube(scene_t *s, int x, int y, int z,
+    int shader, int color, int w, int h, int d);
+export int scene_create_sphere(scene_t *s, int x, int y, int z,
+    int shader, int color, int segs, int r);
