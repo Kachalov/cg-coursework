@@ -15,3 +15,4 @@ m4_t make_projection(float angle, float ratio, float near, float far);
 m3_t make_rot_x(float a);
 m3_t make_rot_y(float a);
 m3_t make_rot_z(float a);
+m4_t make_rot(float x, float y, float z);

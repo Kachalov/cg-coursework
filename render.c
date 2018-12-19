@@ -12,8 +12,6 @@ void frame(scene_t *s, int render)
 {
     model_t **model;
     render_mode = render;
-    console_log("RENDER MODE: %d", render_mode);
-    console_log("WIREFRAME: %d", render_mode & RENDER_WIREFRAME);
 
     if (render_mode & RENDER_GRID)
         draw_grid(s, 20, 26);
@@ -75,14 +73,12 @@ void draw_grid(scene_t *s, int size, int count)
         draw_line_3d(s, a, b, mat_shader_f, &mat);
     }
 
-    mat.ambient = (rgba_t){255, 0, 0, 255};
-    a.wv = a.v = (v3_t){0, 0, 200};
-    a = world2viewport(a, s);
-    a.v = v3_norm(v3_sub(a.wv, a.v));
-    a = world2viewport(a, s);
-    b.v.x = b.v.y = b.v.z = 0;
+    /*b.v.x = b.v.y = b.v.z = 0;
     b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
+    a.wv = a.v = (v3_t){-140, -240, 230};
+    a = world2viewport(a, s);
+    mat.ambient = (rgba_t){0, 0, 255, 255};
+    draw_line_3d(s, a, b, mat_shader_f, &mat);*/
 }
 
 void draw_lights(scene_t *s)
@@ -155,6 +151,17 @@ void draw_model(scene_t *s, const model_t *model)
     {
         draw_model_face(s, model, face);
     }
+
+    if (render_mode & RENDER_WIREFRAME)
+        for (int i = 0; i < model->vs.l; i++)
+        {
+            rgba_t c = (rgba_t){0, 255, 0, 255};
+            evertex_t v;
+            v.v =  model->vs.d[i];
+            v = world2viewport(v, s);
+            if (v.v.x >= 0 && v.v.x < s->canv->w && v.v.y >= 0 && v.v.y < s->canv->h)
+                DOT(s->canv, lroundf(v.v.x), lroundf(v.v.y), &c);
+        }
 
     // TODO (15.11.2018): draw_model_line
 }
@@ -328,9 +335,9 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
         ps[i].pos.y = vs[i].v.y;
     }
 
-    draw_line(s, ps[0].pos, ps[1].pos, shf, mat);
-    draw_line(s, ps[0].pos, ps[2].pos, shf, mat);
-    draw_line(s, ps[2].pos, ps[1].pos, shf, mat);
+    draw_line(s, ps[0].pos, ps[1].pos, mat_shader_f, mat);
+    draw_line(s, ps[0].pos, ps[2].pos, mat_shader_f, mat);
+    draw_line(s, ps[2].pos, ps[1].pos, mat_shader_f, mat);
     }
     else
     {

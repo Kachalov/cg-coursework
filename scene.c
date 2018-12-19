@@ -192,7 +192,10 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     scene_create_cube(s, 100, 0, -5, 0, rgba2int((rgba_t){255, 140, 80, 255}),
         100, 100, 100);
 
-    scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 255}));
+    scene_create_sphere(s, -60, 200, 20, 0, rgba2int((rgba_t){232, 224, 142, 255}),
+        15, 100);
+
+    scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 100}));
 
     // TODO (27.11.18): Remove test part
     {m4_t m = s->mvp_mtrx;
@@ -233,27 +236,12 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     model_t *m = model_init(NULL, 1000, 1000, 1000);
 
     vertex_t vs[] = {
-        {100, 0, -5},
-        {100, 100, -5},
-        {200, 100, -5},
-        {200, 0, -5},
-
-        {100, 0, 95},
-        {100, 100, 95},
-        {200, 100, 95},
-        {200, 0, 95},
-
-        {0, 0, 0},
-        {50, 0, 0},
-        {0, 100, 0},
-        {0, 0, 50},
-
         {-300, 300, -0.8},
         {-300, -300, -0.8},
         {300, -300, -0.8},
         {300, 300, -0.8}
     };
-    m = model_add_vertices_arr(m, vs, 12 + 4);
+    m = model_add_vertices_arr(m, vs, 4);
 
     // TODO: To avoid calling memset
     int y = 0;
@@ -313,9 +301,9 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
 
 
     memcpy(nid, &((normalid_t[3]){1, 1, 1}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){12, 13, 14}), sizeof(vertexid_t[3]));
+    memcpy(vid, &((vertexid_t[3]){0, 1, 2}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){14, 15, 12}), sizeof(vertexid_t[3]));
+    memcpy(vid, &((vertexid_t[3]){0, 2, 3}), sizeof(vertexid_t[3]));
     m = model_add_face_arr(m, vid, nid, 3);
 
     m->props.mat.ambient.r = 255;
@@ -562,5 +550,88 @@ export int scene_create_cube(scene_t *s, int x, int y, int z,
 export int scene_create_sphere(scene_t *s, int x, int y, int z,
     int shader, int color, int segs, int r)
 {
-    return 0;
+    model_t *m = model_init(
+        NULL,
+        segs * (segs - 2) + 2,
+        segs * (segs - 2) + 2,
+        2 * segs * (segs - 1));
+    m->props.mat.ambient = int2rgba(color);
+
+    vertex_t vs[4];
+    v3_t ns[4];
+
+    vs[0] = (v3_t){x, y, z - r};
+    ns[0] = (v3_t){0, 0, -1};
+    vs[1] = (v3_t){x, y, z + r};
+    ns[1] = (v3_t){0, 0, 1};
+
+    m = model_add_normals_arr(m, ns, 2);
+    m = model_add_vertices_arr(m, vs, 2);
+
+    int vid = 2;
+
+    v3_t rv = {r, 0, 0};
+    v3_t rij;
+    m4_t rot;
+
+    int seg2 = (segs - 2)/2;
+    int seg2p = (segs - 2)%2;
+    int seg2np = 1 - seg2p;
+
+    console_log("GENERATE SPHERE: [%d ... %d)", -seg2-seg2p, seg2);
+
+    for (int i = -seg2-seg2p; i < seg2; i++)
+    {
+        for (int j = 0; j < segs; j++)
+        {
+            rot = make_rot(
+                M_PI/2,
+                (j + 0.5 * seg2np)*2.0*M_PI/segs,
+                (i + 0.5 * seg2np)*2.0*M_PI/segs);
+            rij = m4_v3t_mul(&rot, &rv);
+            vs[0] = (vertex_t){
+                x + rij.x,
+                y + rij.y,
+                z + rij.z
+            };
+            ns[0] = v3_norm(rij);
+            m = model_add_normals_arr(m, ns, 1);
+            m = model_add_vertices_arr(m, vs, 1);
+        }
+    }
+
+    for (int j = -seg2-seg2p; j < seg2 - 1; j++)
+    {
+        for (int i = 0; i < segs; i++)
+        {
+            m = model_add_face_arr(
+                m,
+                (vertexid_t[3]){vid + i, vid + ((i + 1) % (segs)), vid + segs + i},
+                (normalid_t[3]){vid + i, vid + ((i + 1) % (segs)), vid + segs + i}, 3);
+            m = model_add_face_arr(
+                m,
+                (vertexid_t[3]){vid + ((i + 1) % (segs)), vid + segs + i, vid + segs + ((i + 1) % (segs))},
+                (normalid_t[3]){vid + ((i + 1) % (segs)), vid + segs + i, vid + segs + ((i + 1) % (segs))}, 3);
+        }
+        vid += segs;
+    }
+
+    for (int i = 0; i < segs; i++)
+    {
+        vid = 2;
+        m = model_add_face_arr(
+            m,
+            (vertexid_t[3]){0, vid + i, vid + ((i + 1) % (segs))},
+            (normalid_t[3]){0, vid + i, vid + ((i + 1) % (segs))}, 3);
+        vid = segs * (segs - 3) + 2;
+        m = model_add_face_arr(
+            m,
+            (vertexid_t[3]){1, vid + i, vid + ((i + 1) % (segs))},
+            (normalid_t[3]){1, vid + i, vid + ((i + 1) % (segs))}, 3);
+    }
+
+    m->props.shaders.f = phong_shader_f;
+    m->props.shaders.v = test_shader_v;
+
+    return scene_add_model(s, m);
 }

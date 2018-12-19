@@ -24,8 +24,8 @@ canvas_t *canvas_init(int w, int h, rgba_t *data)
 export
 void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
 {
-    int dx = abs(a.v.x - b.v.x);
-    int dy = abs(a.v.y - b.v.y);
+    int dx = fabsf(a.v.x - b.v.x);
+    int dy = fabsf(a.v.y - b.v.y);
     int steep = dy > dx;
 
     if (dx == dy && dy == 0)
@@ -41,8 +41,8 @@ void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
         b.v.x = b.v.y;
         b.v.y = tmp;
 
-        dx = abs(a.v.x - b.v.x);
-        dy = abs(a.v.y - b.v.y);
+        dx = fabsf(a.v.x - b.v.x);
+        dy = fabsf(a.v.y - b.v.y);
     }
 
     if (a.v.x > b.v.x)
@@ -51,8 +51,8 @@ void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
         a = b;
         b = tmp;
 
-        dx = abs(a.v.x - b.v.x);
-        dy = abs(a.v.y - b.v.y);
+        dx = fabsf(a.v.x - b.v.x);
+        dy = fabsf(a.v.y - b.v.y);
     }
 
     int err = 0;

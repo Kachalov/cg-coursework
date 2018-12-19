@@ -39,20 +39,10 @@ evertex_t world2viewport(evertex_t v, scene_t *s)
         v3 = v3_scale(v3, 1.0/v4.w);
     r.n = m4_v3t_mul(&s->viewport_mtrx, &v3);*/
 
-    m3_t rx = make_rot_x((90 + 40) * 1.0/180*3.1415);
-    m3_t ry = make_rot_y((0) * 1.0/180*3.1415);
-    m3_t rz = make_rot_z((30) * 1.0/180*3.1415);
-    m3_t rr = m3_m3_mul(&rx, &ry);
-    rr = m3_m3_mul(&rr, &rz);
-    m4_t mr;
-    for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-        {
-            ((float *)&mr)[i*4+j] = ((float *)&rr)[i*3+j];
-        }
-
-    mr.d[0].w = mr.d[1].w = mr.d[2].w = mr.d[3].x = mr.d[3].y = mr.d[0].z = 0;
-    mr.d[3].w = 1;
+    m4_t mr = make_rot(
+        (90 + 40) * 1.0/180*3.1415,
+        (0) * 1.0/180*3.1415,
+        (30) * 1.0/180*3.1415);
 
     v3 = m4_v3t_mul(/*&(m4_t){
         sqrt(1./2), 0, -sqrt(1./2), 0,
@@ -308,4 +298,24 @@ m3_t make_rot_z(float a)
     };
 
     return m;
+}
+
+m4_t make_rot(float x, float y, float z)
+{
+    m3_t rx = make_rot_x(x);
+    m3_t ry = make_rot_y(y);
+    m3_t rz = make_rot_z(z);
+    m3_t rr = m3_m3_mul(&rx, &ry);
+    rr = m3_m3_mul(&rr, &rz);
+    m4_t mr;
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+        {
+            ((float *)&mr)[i*4+j] = ((float *)&rr)[i*3+j];
+        }
+
+    mr.d[0].w = mr.d[1].w = mr.d[2].w = mr.d[3].x = mr.d[3].y = mr.d[0].z = 0;
+    mr.d[3].w = 1;
+
+    return mr;
 }
