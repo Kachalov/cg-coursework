@@ -193,7 +193,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     scene_create_cube(s, 100, 0, -5, 4, rgba2int((rgba_t){255, 140, 80, 255}),
         100, 100, 100);
 
-    scene_create_sphere(s, -60, 200, 20, 1, rgba2int((rgba_t){232, 224, 142, 255}),
+    scene_create_sphere(s, -60, 200, 120, 4, rgba2int((rgba_t){232, 224, 142, 255}),
         20, 100);
 
     scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 100}));
@@ -546,7 +546,6 @@ export int scene_create_cube(scene_t *s, int x, int y, int z,
     return scene_add_model(s, m);
 }
 
-// TODO(20.12.18): Fix Top/bottom part linking
 export int scene_create_sphere(scene_t *s, int x, int y, int z,
     int shader, int color, int segs, int r)
 {
@@ -578,16 +577,14 @@ export int scene_create_sphere(scene_t *s, int x, int y, int z,
     int seg2p = (segs - 2)%2;
     int seg2np = 1 - seg2p;
 
-    console_log("GENERATE SPHERE: [%d ... %d)", -seg2-seg2p, seg2);
-
     for (int i = -seg2-seg2p; i < seg2; i++)
     {
         for (int j = 0; j < segs; j++)
         {
             rot = make_rot(
                 M_PI/2,
-                (j + 0.5 * seg2np)*2.0*M_PI/segs,
-                (i + 0.5 * seg2np)*2.0*M_PI/segs);
+                j*2.0*M_PI/segs,
+                (i + 0.5 * seg2np)*M_PI/segs);
             rij = m4_v3t_mul(&rot, &rv);
             vs[0] = (vertex_t){
                 x + rij.x,
@@ -600,7 +597,8 @@ export int scene_create_sphere(scene_t *s, int x, int y, int z,
         }
     }
 
-    for (int j = -seg2-seg2p; j < seg2 - 1; j++)
+    vid = 2;
+    for (int j = 0; j < segs - 3; j++)
     {
         for (int i = 0; i < segs; i++)
         {
