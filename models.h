@@ -21,8 +21,8 @@ typedef struct {
 } vertices_t;
 
 typedef struct face_st {
-    vertexid_t *v; // IDs
-    normalid_t *n; // IDs
+    vertexid_t *v;
+    normalid_t *n;
     uint32_t l;
     uint32_t alloc;
 } face_t;
@@ -52,7 +52,6 @@ typedef struct model_st {
         uint32_t l;
         uint32_t alloc;
     } fs;
-    // TODO: lines
     model_props_t props;
 } model_t;
 

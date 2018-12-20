@@ -7,7 +7,6 @@
 #include "render.h"
 
 
-export
 canvas_t *canvas_init(int w, int h, rgba_t *data)
 {
     int size_data = data ? 0 : w * h * sizeof(rgba_t);
@@ -21,8 +20,7 @@ canvas_t *canvas_init(int w, int h, rgba_t *data)
     return r;
 }
 
-export
-void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
+void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, const mat_t *mat)
 {
     int dx = fabsf(a.v.x - b.v.x);
     int dy = fabsf(a.v.y - b.v.y);
@@ -102,8 +100,7 @@ void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, mat_t *mat)
     }
 }
 
-export
-void draw_line(scene_t *s, point_t a, point_t b, void *shf, mat_t *mat)
+void draw_line(scene_t *s, point_t a, point_t b, void *shf, const mat_t *mat)
 {
     int dx = abs(a.x - b.x);
     int dy = abs(a.y - b.y);

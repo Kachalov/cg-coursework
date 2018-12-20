@@ -8,151 +8,58 @@
 #include "utils.h"
 
 
-// TODO (27.11.18): Remove test part
-pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
+void scene_example(scene_t *s)
 {
-    pixel_t r;
+    scene_create_cube(
+        s, 100, 0, -5, 4,
+        rgba2int((rgba_t){255, 140, 80, 255}),
+        100, 100, 100);
 
-    /*r.col.r = clamp(lroundf(a.wv.x) % 255, 0, 255);a.c.r;
-    r.col.g = clamp(lroundf(a.wv.x) % 255, 0, 255);a.c.g;
-    r.col.b = clamp(lroundf(a.wv.x) % 255, 0, 255);a.c.b;*/
-    r.col = a.c;
+    scene_create_sphere(
+        s, -60, 200, 20, 4,
+        rgba2int((rgba_t){232, 224, 142, 255}),
+        20, 100);
 
-    r.pos.x = a.v.x;
-    r.pos.y = a.v.y;
-    //return r;
+    scene_create_light(
+        s, -150, 50, 50,
+        rgba2int((rgba_t){255, 242, 194, 100}));
 
-    /*v3_t p = a.wv;
-    v3_t l = v3_norm(v3_sub(s->ls.d[0].pos, p));
-    v3_t v = v3_norm(v3_sub(s->viewport_props.eye, p));
-    v3_t n = a.wn;
-
-    v3_t vn = v3_sub((v3_t){0, 0, 0}, v);
-    v3_t vr = v3_sub((v3_t){0, 0, 0}, v3_sub(vn, v3_scale(n, 2 * v3_dot(n, v))));
-
-    float id = fmax(v3_dot(n, l), 0);
-    float is = pow2(fmax(v3_dot(l, vr), 0), 2);
-    r.col = rgba_scale3(r.col, id + is);*/
-
-
-    static int calls = 0;
-    if(calls++ < 500 || calls > 600)
     {
-        //r.col = (rgba_t){0, 0, 0, 255};
-        //return r;
-    }
-    else console_log("wa(%lf %lf %lf)", a.wv.x, a.wv.y, a.wv.z);
-
-
-    model_t **modeli;
-    model_t *model;
-    face_t *face;
-    evertex_t vs[3], el;
-    float atten, attens = 0;
-    int lights = 0;
-
-    for (int lid = 0; lid < s->ls.l; lid++)
-        lights |= (1 << lid);
-
-    modeli = s->models.d;
-    for (int mid = 0; mid < s->models.l; mid++, modeli++)
-    {
-        model = *modeli;
-        face = model->fs.d;
-        for (int fid = 0; fid < model->fs.l; fid++, face++)
-        {
-            if (face->l == 3)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    vs[i].wv = model->vs.d[face->v[i]];
-                    if (face->n[i] != -1)
-                        vs[i].n = model->ns.d[face->n[i]];
-                }
-
-                for (int lid = 0; lid < s->ls.l; lid++)
-                {
-                    //if((lights & (1 << lid)) == 0)
-                    //    continue;
-
-                    el.wv = s->ls.d[lid].pos;
-                    v3_t dir = v3_sub(el.wv, a.wv);
-                    float d = sqrt(v3_dot(dir, dir));
-                    float ind = intersect_triangle(a.wv, dir, vs[0].wv, vs[1].wv, vs[2].wv);
-
-                    float eps = 0;//0.005;//0.040;
-                    if (0 + eps < ind && ind < 1 - eps)
-                    {
-                        lights &= ~(1 << lid);
-                        //console_log("!ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
-                    }
-                    else
-                    {
-                        //console_log("ind=%lf d=%lf fid=%d lid=%d", ind, d, fid, lid);
-                    }
-                }
-            }
-            else
-            {
-                // TODO (15.11.2018): yield_face_triangle
-                abort();
-            }
-        }
+        m4_t m = s->mvp_mtrx;
+        console_log("mvp");
+        console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
+        console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
+        console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
+        console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);
     }
 
-    for (int lid = 0; lid < s->ls.l; lid++)
-    {
-        if((lights & (1 << lid)) == 0)
-            continue;
-        //console_log("LIGHT %d", lid);
+    model_t *m = model_init(NULL, 4, 1, 2);
 
-        el.wv = s->ls.d[lid].pos;
-        v3_t dir = v3_sub(el.wv, a.wv);
-        float d = sqrt(v3_dot(dir, dir));
+    vertex_t vs[] = {
+        {-300, 300, -0.8},
+        {-300, -300, -0.8},
+        {300, -300, -0.8},
+        {300, 300, -0.8}
+    };
+    m = model_add_vertices_arr(m, vs, 4);
 
-        atten = 1 / (s->ls.d[lid].attens.c +
-        s->ls.d[lid].attens.l * d +
-        s->ls.d[lid].attens.q * d * d);
+    v3_t ns[] = {{0, 0, 1}};
+    m = model_add_normals_arr(m, ns, 1);
 
-        dir = v3_norm(dir);
-        float alpha = v3_dot(dir, vs[0].wn);
-        alpha = alpha < 0 ? -alpha : alpha;
-        alpha = 1; // TODO
-        attens += atten * alpha;
-        lights |= (1 << lid);
-    }
+    normalid_t nid[] = {0, 0, 0};
+    vertexid_t vid[3] = {0, 1, 2};
 
-    //console_log("K %lf", attens);
-    r.col = rgba_scale3(r.col, attens);
+    m = model_add_face_arr(m, vid, nid, 3);
+    memcpy(vid, &((vertexid_t[3]){0, 2, 3}), sizeof(vertexid_t[3]));
+    m = model_add_face_arr(m, vid, nid, 3);
 
-    return r;
+    m->props.mat.ambient = (rgba_t){255, 255, 255, 255};
+
+    m->props.shaders.f = phong_shader_f;
+    m->props.shaders.v = phong_shader_v;
+
+    scene_add_model(s, m);
 }
-
-evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
-{
-    evertex_t r = vs[i];
-
-    //v3_t a, b;
-
-    //a = v3_sub(vs[1].v, vs[0].v);
-    //b = v3_sub(vs[2].v, vs[0].v);
-    //r.n = v3_cross(a, b);
-
-   /* if (render_mode & RENDER_NORMS)
-    {
-        evertex_t ea, eb;
-        mat_t mat;
-        mat.ambient = (rgba_t){255, 0, 0, 255};
-        ea.v = v3_add(vs[i].wv, v3_scale(vs[i].wn, 5));
-        eb.v = v3_add(vs[i].wv, v3_scale(vs[i].wn, 20));
-        ea = world2viewport(ea, s);
-        eb = world2viewport(eb, s);
-        draw_line_3d(s, ea, eb, none_shader_f, &mat);
-    }*/
-
-    return r;
-}
-// End of test part
 
 export
 scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
@@ -175,7 +82,6 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->models.d = 0;
     s->models.l = 0;
 
-
     s->viewport_props.eye = (v3_t){0, 0, -400};//{1, 0.4, -1};
     s->viewport_props.center = (v3_t){0, 0, 0};
     s->viewport_props.up = (v3_t){0, 1, 0};
@@ -189,183 +95,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     clear(s);
     scene = s;
 
-
-    scene_create_cube(s, 100, 0, -5, 4, rgba2int((rgba_t){255, 140, 80, 255}),
-        100, 100, 100);
-
-    scene_create_sphere(s, -60, 200, 120, 4, rgba2int((rgba_t){232, 224, 142, 255}),
-        20, 100);
-
-    scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 100}));
-
-    // TODO (27.11.18): Remove test part
-    {m4_t m = s->mvp_mtrx;
-    /*m4_t ma = (m4_t){
-    1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.
-    };
-    v3_t vb = (v3_t){1., 2., 3.};
-    v3_t r = m4_v3t_mul(&ma, &vb);
-    console_log("[%lf; %lf; %lf]", r.x, r.y, r.z);
-    abort();*/
-    console_log("mvp");
-    console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
-
-    {m4_t m = s->view_mtrx;
-    console_log("view");
-    console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
-
-    {m4_t m = s->proj_mtrx;
-    console_log("proj");
-    console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
-
-    {m4_t m = s->viewport_mtrx;
-    console_log("viewport");
-    console_log("|%lf; %lf; %lf; %lf|", m.d[0].x, m.d[0].y, m.d[0].z, m.d[0].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[1].x, m.d[1].y, m.d[1].z, m.d[1].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[2].x, m.d[2].y, m.d[2].z, m.d[2].w);
-    console_log("|%lf; %lf; %lf; %lf|", m.d[3].x, m.d[3].y, m.d[3].z, m.d[3].w);}
-
-    model_t *m = model_init(NULL, 1000, 1000, 1000);
-
-    vertex_t vs[] = {
-        {-300, 300, -0.8},
-        {-300, -300, -0.8},
-        {300, -300, -0.8},
-        {300, 300, -0.8}
-    };
-    m = model_add_vertices_arr(m, vs, 4);
-
-    // TODO: To avoid calling memset
-    int y = 0;
-    v3_t ns[] = {
-        {0, y, -1}, // front
-        {0, 0, 1}, // back
-        {-1, 0, 0}, // left
-        {1, 0, 0}, // right
-        {0, 1, 0}, // up
-        {0, -1, 0} // down
-    };
-    m = model_add_normals_arr(m, ns, 6);
-
-    normalid_t nid[] = {0, 0, 0};
-    vertexid_t vid[3] = {0, 1, 2};
-    /*m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){2, 3, 0}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-
-    memcpy(nid, &((normalid_t[3]){1, 1, 1}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){4, 5, 6}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){6, 7, 4}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-
-    memcpy(nid, &((normalid_t[3]){2, 2, 2}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){0, 1, 5}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){5, 4, 0}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-
-    memcpy(nid, &((normalid_t[3]){3, 3, 3}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){2, 3, 6}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){6, 7, 3}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-
-    memcpy(nid, &((normalid_t[3]){4, 4, 4}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){1, 2, 5}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){5, 6, 2}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-
-    memcpy(nid, &((normalid_t[3]){5, 5, 5}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){3, 0, 7}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){7, 4, 0}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);*/
-    ///////
-
-    /*memcpy(vid, &((vertexid_t[3]){8, 9, 10}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){8, 10, 11}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){8, 9, 11}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);*/
-
-
-    memcpy(nid, &((normalid_t[3]){1, 1, 1}), sizeof(normalid_t[3]));
-    memcpy(vid, &((vertexid_t[3]){0, 1, 2}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-    memcpy(vid, &((vertexid_t[3]){0, 2, 3}), sizeof(vertexid_t[3]));
-    m = model_add_face_arr(m, vid, nid, 3);
-
-    m->props.mat.ambient.r = 255;
-    m->props.mat.ambient.g = 255;
-    m->props.mat.ambient.b = 255;
-    m->props.mat.ambient.a = 255;
-
-    m->props.shaders.f = phong_shader_f;
-    m->props.shaders.v = test_shader_v;
-
-    scene_add_model(s, m);
-
-    /*s->ls.d = heap_alloc(sizeof (light_t) * 2);
-    s->ls.l = 1;
-
-    s->ls.d[0].pos = (v3_t){-150, 50, 50};//-10, 60, 45
-    s->ls.d[0].attens = (light_attens_t){1, 0.001, 0};
-    s->ls.d[0].cols.ambient = (rgba_t){255, 242, 194, 255};
-    s->ls.d[0].cols.diffuse = (rgba_t){255, 255, 255, 255};
-    s->ls.d[0].cols.specular = (rgba_t){255, 255, 255, 255};
-
-    s->ls.d[1].pos = (v3_t){300, 180, 40};
-    s->ls.d[1].attens = (light_attens_t){1, 0.01, 0};
-    s->ls.d[1].cols.ambient = (rgba_t){255, 255, 255, 255};
-    s->ls.d[1].cols.diffuse = (rgba_t){255, 255, 255, 255};
-    s->ls.d[1].cols.specular = (rgba_t){255, 255, 255, 255};*/
-
-    /*vertex_t vt[] = {
-        {200, 200, 0},
-        {200, -200, 0},
-        {-200, 200, 0},
-
-        {50, 199, -1}, //L
-        {50, 199, 90} //P
-    };
-
-    evertex_t evt[5];
-    for (int i = 0; i < 5; i++)
-    {
-        evt[i].v = vt[i];
-        //evt[i] = world2viewport(evt[i], s);
-    }
-
-    v3_t dir = v3_sub(evt[3].v, evt[4].v);
-    float d = sqrt(v3_dot(dir, dir));
-    float ind = intersect_triangle(evt[4].v, dir, evt[0].v, evt[1].v, evt[2].v);
-    console_log("TEST %lf %lf", d, ind);
-
-    v3_t v = (v3_t){111.27630615234375, 109.13348388671875, 45};
-    dir = v3_sub(s->ls.d[0].pos, v);
-    d = sqrt(v3_dot(dir, dir));
-    console_log("TEST!(%lf %lf %lf)", s->ls.d[0].pos.x, s->ls.d[0].pos.y, s->ls.d[0].pos.z);
-    console_log("TEST!(%lf %lf %lf)", dir.x, dir.y, dir.z);
-    console_log("TEST!(%lf %lf %lf)", vs[8].x, vs[8].y, vs[8].z);
-    console_log("TEST!(%lf %lf %lf)", vs[9].x, vs[9].y, vs[9].z);
-    console_log("TEST!(%lf %lf %lf)", vs[10].x, vs[10].y, vs[10].z);
-    ind = intersect_triangle(v, dir, vs[8], vs[9], vs[10]);
-    console_log("TEST! %lf %lf", d, ind);
-    //abort();*/
-
-    // End of test part
+    scene_example(s);
 
     return s;
 }
@@ -438,6 +168,7 @@ void calculate_mtrx(scene_t *s)
     s->mvp_mtrx = vp;//m4_m4_mul(&s->viewport_mtrx, &vp);
 }
 
+//TODO(20.12.18): refactor
 void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
 {
     m3_t my = {

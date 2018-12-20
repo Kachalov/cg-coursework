@@ -23,4 +23,3 @@ export void bitmask_free(bitmask_t *ptr);
 export void bitmask_invert(bitmask_t *bmask, point_t a, point_t b);
 export void bitmask_set(bitmask_t *bmask, point_t a, point_t b);
 export void bitmask_unset(bitmask_t *bmask, point_t a, point_t b);
-export void log_bitmask_row(bitmask_t *bmask, int row);

@@ -55,7 +55,8 @@ SET_PIXEL(c, x+1, y+1, p); }
 export
 canvas_t *canvas_init(int w, int h, rgba_t *data);
 export
-void draw_line(scene_t *s, point_t a, point_t b, void *shf, mat_t *mat);
+void draw_line(scene_t *s, point_t a, point_t b, void *shf, const mat_t *mat);
+void draw_line_3d(scene_t *s, evertex_t a, evertex_t b, void *shf, const mat_t *mat);
 export
 void set_pixel(canvas_t *canv, int16_t x, int16_t y, rgba_t *color);
 void set_pixel_z(canvas_t *canv, zbuf_t *zbuf, int16_t x, int16_t y, int16_t z, rgba_t *color);

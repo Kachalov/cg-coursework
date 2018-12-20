@@ -3,7 +3,7 @@
 
 
 model_t *model_init(model_t *old, int v, int n, int f)
-{console_log("init %d %d %d", v, n, f);
+{
     int vs = v * sizeof(vertex_t);
     int ns = n * sizeof(normal_t);
     int fs = f * sizeof(face_t);
@@ -52,7 +52,6 @@ model_t *model_init(model_t *old, int v, int n, int f)
         m->fs.l = 0;
     }
     m->fs.alloc = f;
-    // it += fs;
 
     m->props.shaders.f = 0;
     m->props.shaders.v = 0;
@@ -139,13 +138,3 @@ face_t model_face_static_init(int n)
 
     return f;
 }
-
-/*
- m->fs.d[0].d = heap_alloc(sizeof (uint32_t) * 3);
-    m->fs.d[0].l = 3;
-    m->fs.l = 3;
-
-    m->fs.d[0].d[0] = 0;
-    m->fs.d[0].d[1] = 1;
-    m->fs.d[0].d[2] = 2;
-*/

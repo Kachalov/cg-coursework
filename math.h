@@ -45,7 +45,6 @@ v3_t v3_sub(v3_t a, v3_t b);
 v3_t v3_cross(v3_t a, v3_t b);
 v3_t v3_norm(v3_t a);
 float v3_dot(v3_t a, v3_t b);
-//float v4_dot(v4_t a, v4_t b);
 v3_t v3_scale(v3_t a, float k);
 
 int mtrx_mul(float *res, float *a, int am, int an, float *b, int bm, int bn);

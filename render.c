@@ -6,8 +6,6 @@
 #include "shaders.h"
 
 
-int render_mode;
-
 void frame(scene_t *s, int render)
 {
     model_t **model;
@@ -24,9 +22,7 @@ void frame(scene_t *s, int render)
 
     model = s->models.d;
     for (int i = 0; i < s->models.l; i++, model++)
-    {
         draw_model(s, *model);
-    }
 
     if (render_mode & RENDER_ZBUF)
         draw_zbuf(s);
@@ -97,7 +93,6 @@ void draw_lights(scene_t *s)
 
     for (int lid = 0; lid < s->ls.l; lid++)
     {
-
         mat.ambient = s->ls.d[lid].cols.ambient;
         a.v = b.v = s->ls.d[lid].pos;
         a.v.x -= r1;
@@ -155,9 +150,7 @@ void draw_model(scene_t *s, const model_t *model)
 
     face = model->fs.d;
     for (int i = 0; i < model->fs.l; i++, face++)
-    {
         draw_model_face(s, model, face);
-    }
 
     if (render_mode & RENDER_VERTS)
         for (int i = 0; i < model->vs.l; i++)
@@ -208,9 +201,7 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
 
         if (render_mode & RENDER_NORMS)
             for (int i = 0; i < 3; i++)
-            {
                 draw_norm(s, vs[i]);
-            }
     }
     else
     {
@@ -259,55 +250,53 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
     evertex_t tmp;
     yield_evertex_t ya, yb, ytmp;
 
-    if (render_mode & RENDER_FACE) {
-    int min_y = vs[0].v.y;
-    int mid_y = vs[1].v.y;
-    int max_y = vs[2].v.y;
+    if (render_mode & RENDER_FACE)
+    {
+        int min_y = vs[0].v.y;
+        int mid_y = vs[1].v.y;
+        int max_y = vs[2].v.y;
 
-    ya = yield_evertex_init(vs[0], vs[1], min_y - mid_y);
-    yb = yield_evertex_init(vs[0], vs[2], min_y - max_y);
+        ya = yield_evertex_init(vs[0], vs[1], min_y - mid_y);
+        yb = yield_evertex_init(vs[0], vs[2], min_y - max_y);
 
-    ya.dev.v.y = 1;
-    yb.dev.v.y = 1;
+        ya.dev.v.y = 1;
+        yb.dev.v.y = 1;
 
-    if (min_y != mid_y)
-        for (int y = min_y; y <= mid_y; y++)
-            draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
+        if (min_y != mid_y)
+            for (int y = min_y; y <= mid_y; y++)
+                draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
 
-    tmp = vs[2];
-    vs[2] = vs[0];
-    vs[0] = tmp;
+        tmp = vs[2];
+        vs[2] = vs[0];
+        vs[0] = tmp;
 
-    ytmp = ya;
-    ya = yield_evertex_init(vs[0], vs[1], mid_y - max_y);
-    yb = yield_evertex_init(vs[0], vs[2], min_y - max_y);
+        ytmp = ya;
+        ya = yield_evertex_init(vs[0], vs[1], mid_y - max_y);
+        yb = yield_evertex_init(vs[0], vs[2], min_y - max_y);
 
-    ya.dev.v.y = -1;
-    yb.dev.v.y = -1;
+        ya.dev.v.y = -1;
+        yb.dev.v.y = -1;
 
-    if (mid_y != max_y)
-        for (int y = mid_y; y <= max_y; y++)
-            draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
-        }
+        if (mid_y != max_y)
+            for (int y = mid_y; y <= max_y; y++)
+                draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
+    }
 
     pixel_t ps[3];
-
-    if (render_mode & RENDER_WIREFRAME) {
-    for (int i = 0; i < 3; i++)
+    if (render_mode & RENDER_WIREFRAME)
     {
-        ps[i].pos.x = vs[i].v.x;
-        ps[i].pos.y = vs[i].v.y;
-    }
+        for (int i = 0; i < 3; i++)
+        {
+            ps[i].pos.x = vs[i].v.x;
+            ps[i].pos.y = vs[i].v.y;
+        }
 
-    draw_line(s, ps[0].pos, ps[1].pos, none_shader_f, mat);
-    draw_line(s, ps[0].pos, ps[2].pos, none_shader_f, mat);
-    draw_line(s, ps[2].pos, ps[1].pos, none_shader_f, mat);
-    }
-    else
-    {
-    /*draw_line_3d(s, vs[0], vs[1], shf, mat);
-    draw_line_3d(s, vs[0], vs[2], shf, mat);
-    draw_line_3d(s, vs[2], vs[1], shf, mat);*/
+        draw_line(s, ps[0].pos, ps[1].pos, none_shader_f, mat);
+        draw_line(s, ps[0].pos, ps[2].pos, none_shader_f, mat);
+        draw_line(s, ps[2].pos, ps[1].pos, none_shader_f, mat);
+        /*draw_line_3d(s, vs[0], vs[1], shf, mat);
+        draw_line_3d(s, vs[0], vs[2], shf, mat);
+        draw_line_3d(s, vs[2], vs[1], shf, mat);*/
     }
 }
 
@@ -318,12 +307,6 @@ void draw_triangle_row(
     evertex_t va, vb, tmpv;
     evertex_t *ev;
     yield_evertex_t *yv;
-
-    /*ev = &va;
-    YIELD_EVERTEX(ev, ya);
-
-    ev = &vb;
-    YIELD_EVERTEX(ev, yb);*/
 
     va = ya->ev;
     va.c = (rgba_t){
@@ -362,21 +345,8 @@ void draw_triangle_row(
     ev = &vi;
     yv = &yi;
 
-    /*for (int i = va.v.x; i < 0; i++)
-        YIELD_EVERTEX(ev, yv);*/
-
     for (int i = va.v.x; i <= min(vb.v.x, s->canv->w - 1); i++)
     {
-        //YIELD_EVERTEX(ev, yv);
-
-        /*if (yi.ev.v.z < 0)
-        {
-            if (yi.dev.v.z < 0)
-                break;
-            else
-                continue;
-        }*/
-
         if (vi.v.x < 0 || vi.v.x >= s->canv->w ||
         vi.v.y < 0 || vi.v.y >= s->canv->h)
         {
@@ -387,10 +357,6 @@ void draw_triangle_row(
         a = shf(vi, mat, s);
         if (a.pos.x >= 0 && a.pos.x < s->canv->w && a.pos.y >= 0 && a.pos.y < s->canv->h && (vi.v.z >= s->perspective_props.near && vi.v.z <= s->perspective_props.far))
             SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, ((vi.v.z)/(s->perspective_props.far - s->perspective_props.near)*ZBUF_DEPTH), &a.col);
-        //if (a.pos.x >= 0 && a.pos.x < s->canv->w &&
-        //    a.pos.y >= 0 && a.pos.y < s->canv->h &&
-        //    (vi.v.z >= 0 && vi.v.z <= ZBUF_DEPTH))
-        //    SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, vi.v.z, &a.col);
 
         YIELD_EVERTEX(ev, yv);
     }

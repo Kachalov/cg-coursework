@@ -10,56 +10,19 @@
 evertex_t world2viewport(evertex_t v, scene_t *s)
 {
     evertex_t r = v;
-    v4_t v4;
     v3_t v3;
-
-    /*static float tmp[8];
-    static float res[8];
-
-    tmp[0] = r.v.x;
-    tmp[1] = r.n.x;
-    tmp[2] = r.v.y;
-    tmp[3] = r.n.y;
-    tmp[4] = r.v.z;
-    tmp[5] = r.n.z;
-    tmp[6] = 0;
-    tmp[7] = 0;*/
-
-    /*v4 = m4_v3t_mul_v4(&s->mvp_mtrx, &r.v);
-    v3 = (v3_t){v4.x, v4.y, v4.z};
-    //console_log("MVP %lf %lf %lf %lf", v4.x, v4.y, v4.z, v4.w);
-    if (v4.w)
-        v3 = v3_scale(v3, 1.0/v4.w);
-    //console_log("MVP w=1 %lf %lf %lf", r.v.x, r.v.y, r.v.z);
-    r.v = m4_v3t_mul(&s->viewport_mtrx, &v3);
-
-    v4 = m4_v3t_mul_v4(&s->mvp_mtrx, &r.n);
-    v3 = (v3_t){v4.x, v4.y, v4.z};
-    if (v4.w)
-        v3 = v3_scale(v3, 1.0/v4.w);
-    r.n = m4_v3t_mul(&s->viewport_mtrx, &v3);*/
 
     m4_t mr = make_rot(
         (90 + 40) * 1.0/180*3.1415,
         (0) * 1.0/180*3.1415,
         (30) * 1.0/180*3.1415);
 
-    v3 = m4_v3t_mul(/*&(m4_t){
-        sqrt(1./2), 0, -sqrt(1./2), 0,
-        sqrt(1./6), sqrt(2./3), sqrt(1./6), 0,
-        sqrt(1./3), -sqrt(1./3), sqrt(1./3), 0,
-        0, 0, 0, 1
-    }*/&mr, &r.v);
+    v3 = m4_v3t_mul(&mr, &r.v);
     r.v = (v3_t){
         v3.x + s->canv->w / 2,
         v3.y + s->canv->h / 2,
         v3.z - s->viewport_props.eye.z
     };
-
-    /*mtrx_mul(&res, &s->mvp_mtrx, 4, 4, &tmp, 4, 2);
-
-    r.v = (v3_t){tmp[0], tmp[2], tmp[4]};
-    r.n = (v3_t){tmp[1], tmp[3], tmp[5]};*/
 
     return r;
 }
@@ -161,36 +124,21 @@ float intersect_triangle(v3_t from, v3_t dir, v3_t v0, v3_t v1, v3_t v2)
     float det = v3_dot(e1, pv);
     float t;
 
-    /*console_log("int v2(%lf %lf %lf)", v2.x, v2.y,v2.z);
-    console_log("int v1(%lf %lf %lf)", v1.x, v1.y,v1.z);
-    console_log("int v0(%lf %lf %lf)", v0.x, v0.y,v0.z);
-    console_log("int e1(%lf %lf %lf)", e1.x, e1.y,e1.z);
-    console_log("int e2(%lf %lf %lf)", e2.x, e2.y,e2.z);
-    console_log("int dir(%lf %lf %lf)", dir.x, dir.y,dir.z);
-    console_log("int pv(%lf %lf %lf)", pv.x, pv.y,pv.z);
-    console_log("INT %lf", det);*/
-
     if (fpclassify(det) == FP_ZERO)
         return -10;
 
     float inv_det = 1 / det;
     v3_t tv = v3_sub(from, v0);
-    //console_log("int tv(%lf %lf %lf)", tv.x, tv.y,tv.z);
     float u = v3_dot(tv, pv) * inv_det;
-    //console_log("int u %lf)", u);
     if (u < 0 || 1 < u)
         return -20;
 
     v3_t qv = v3_cross(tv, e1);
-    //console_log("int qv(%lf %lf %lf)", qv.x, qv.y,qv.z);
     float v = v3_dot(dir, qv) * inv_det;
-    //console_log("int v %lf)", v);
     if (v < 0 || 1 < u + v)
         return -30;
 
-    //console_log("INTr %lf %lf", v3_dot(e2, qv), inv_det);
     t = v3_dot(e2, qv) * inv_det;
-    //console_log("INTr=%lf)", t);
     return t;
 }
 

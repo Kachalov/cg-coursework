@@ -31,4 +31,3 @@ evertex_t plain_shader_v(const evertex_t *vs, int i, scene_t *s);
 
 pixel_t phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s);
 evertex_t phong_shader_v(const evertex_t *vs, int i, scene_t *s);
-
