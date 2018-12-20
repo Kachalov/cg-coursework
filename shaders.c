@@ -5,7 +5,7 @@
 #include "render.h"
 #include "utils.h"
 
-pixel_t mat_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
+pixel_t none_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 {
     pixel_t r;
 
@@ -17,9 +17,34 @@ pixel_t mat_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     return r;
 }
 
+evertex_t none_shader_v(const evertex_t *vs, int i, scene_t *s)
+{
+    evertex_t r = vs[i];
+
+    return r;
+}
+
+pixel_t plain_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
+{
+    pixel_t r;
+
+    r.col = mat->ambient;
+
+    // TODO
+    r = phong_shader_f(a, mat, s);
+
+    r.pos.x = a.v.x;
+    r.pos.y = a.v.y;
+
+    return r;
+}
+
 evertex_t plain_shader_v(const evertex_t *vs, int i, scene_t *s)
 {
     evertex_t r = vs[i];
+
+    r.wn = v3_norm(v3_add(v3_add(vs[0].wn,vs[1].wn),vs[2].wn));
+    r.n = v3_norm(v3_add(v3_add(vs[0].n,vs[1].n),vs[2].n));
 
     return r;
 }
@@ -83,6 +108,13 @@ pixel_t phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
         clampf(ia.z * a.c.b / 255, 0, 255),
         255
     };
+
+    return r;
+}
+
+evertex_t phong_shader_v(const evertex_t *vs, int i, scene_t *s)
+{
+    evertex_t r = vs[i];
 
     return r;
 }

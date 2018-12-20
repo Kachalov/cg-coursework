@@ -49,7 +49,7 @@ void draw_grid(scene_t *s, int size, int count)
         b.v.y = size * (count - (count / 2));
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
     }
 
     for (int y = -count / 2; y <= count - (count / 2); y++)
@@ -60,7 +60,7 @@ void draw_grid(scene_t *s, int size, int count)
         b.v.x = size * (count - (count / 2));
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
     }
 }
 
@@ -75,17 +75,17 @@ void draw_xyz(scene_t *s)
     mat.ambient = (rgba_t){0, 0, 255, 255};
     b.v = (v3_t){100, 0, 0};
     b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
+    draw_line_3d(s, a, b, none_shader_f, &mat);
 
     mat.ambient = (rgba_t){255, 0, 0, 255};
     b.v = (v3_t){0, 100, 0};
     b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
+    draw_line_3d(s, a, b, none_shader_f, &mat);
 
     mat.ambient = (rgba_t){255, 255, 0, 255};
     b.v = (v3_t){0, 0, 100};
     b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
+    draw_line_3d(s, a, b, none_shader_f, &mat);
 }
 
 void draw_lights(scene_t *s)
@@ -104,21 +104,21 @@ void draw_lights(scene_t *s)
         b.v.x += r1;
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
 
         a.v = b.v = s->ls.d[lid].pos;
         a.v.y -= r1;
         b.v.y += r1;
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
 
         a.v = b.v = s->ls.d[lid].pos;
         a.v.z -= r1;
         b.v.z += r1;
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
 
         a.v = b.v = s->ls.d[lid].pos;
         a.v.x -= r2;
@@ -127,7 +127,7 @@ void draw_lights(scene_t *s)
         b.v.z += r2;
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
 
         a.v = b.v = s->ls.d[lid].pos;
         a.v.x -= r2;
@@ -136,7 +136,7 @@ void draw_lights(scene_t *s)
         b.v.y += r2;
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
 
         a.v = b.v = s->ls.d[lid].pos;
         a.v.z -= r2;
@@ -145,7 +145,7 @@ void draw_lights(scene_t *s)
         b.v.y += r2;
         a = world2viewport(a, s);
         b = world2viewport(b, s);
-        draw_line_3d(s, a, b, mat_shader_f, &mat);
+        draw_line_3d(s, a, b, none_shader_f, &mat);
     }
 }
 
@@ -193,27 +193,24 @@ void draw_model_face(scene_t *s, const model_t *model, const face_t *face)
                 s
             );
             vs[i].c = model->props.mat.ambient;
-            //vs[i].v = model->vs.d[face->v[i]];
-            /*console_log("%lf %lf %lf", model->vs.d[face->v[i]].x, model->vs.d[face->v[i]].y, model->vs.d[face->v[i]].z);
-            console_log("%d", face->v[i]);*/
-            //if (face->n[i] != -1)
-            //    vs[i].n = model->ns.d[face->n[i]];
         }
 
         for (int i = 0; i < 3; i++)
         {
             if (model->props.shaders.v)
                 vs[i] = model->props.shaders.v(vs, i, s);
-            //console_log("%lf %lf %lf", vs[i].wv.x, vs[i].wv.y, vs[i].wv.z);
-            //console_log("%lf %lf %lf", vs[i].n.x, vs[i].n.y, vs[i].n.z);
-            //vs[i] = world2viewport(vs[i], s);
-            // TODO: TEST PART
-            //memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));
-            // TODO: END OF TEST PART
-            //console_log("%lf %lf %lf", vs[i].v.x, vs[i].v.y, vs[i].v.z);
+
+            if (render_mode & RENDER_COLORED)
+                memcpy(&vs[i].c, &cols[face->v[i] % cols_len], sizeof(rgba_t));
         }
 
         draw_fragment(s, vs, &model->props);
+
+        if (render_mode & RENDER_NORMS)
+            for (int i = 0; i < 3; i++)
+            {
+                draw_norm(s, vs[i]);
+            }
     }
     else
     {
@@ -302,9 +299,9 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
         ps[i].pos.y = vs[i].v.y;
     }
 
-    draw_line(s, ps[0].pos, ps[1].pos, mat_shader_f, mat);
-    draw_line(s, ps[0].pos, ps[2].pos, mat_shader_f, mat);
-    draw_line(s, ps[2].pos, ps[1].pos, mat_shader_f, mat);
+    draw_line(s, ps[0].pos, ps[1].pos, none_shader_f, mat);
+    draw_line(s, ps[0].pos, ps[2].pos, none_shader_f, mat);
+    draw_line(s, ps[2].pos, ps[1].pos, none_shader_f, mat);
     }
     else
     {
@@ -451,4 +448,16 @@ void draw_zbuf(scene_t *s)
             int z = s->zbuf->data[y * s->canv->w + x] * 1.0 / 255;
             SET_PIXEL(s->canv, x, y, &((rgba_t){z, z, z, 255}));
         }
+}
+
+void draw_norm(scene_t *s, evertex_t v)
+{
+    evertex_t ea, eb;
+    mat_t mat;
+    mat.ambient = (rgba_t){255, 0, 0, 255};
+    ea.v = v3_add(v.wv, v3_scale(v.wn, 5));
+    eb.v = v3_add(v.wv, v3_scale(v.wn, 20));
+    ea = world2viewport(ea, s);
+    eb = world2viewport(eb, s);
+    draw_line_3d(s, ea, eb, none_shader_f, &mat);
 }

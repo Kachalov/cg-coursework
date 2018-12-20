@@ -34,8 +34,6 @@ pixel_t test_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     float is = pow2(fmax(v3_dot(l, vr), 0), 2);
     r.col = rgba_scale3(r.col, id + is);*/
 
-    return r;
-
 
     static int calls = 0;
     if(calls++ < 500 || calls > 600)
@@ -140,7 +138,7 @@ evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
     //b = v3_sub(vs[2].v, vs[0].v);
     //r.n = v3_cross(a, b);
 
-    if (render_mode & RENDER_NORMS)
+   /* if (render_mode & RENDER_NORMS)
     {
         evertex_t ea, eb;
         mat_t mat;
@@ -149,8 +147,8 @@ evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
         eb.v = v3_add(vs[i].wv, v3_scale(vs[i].wn, 20));
         ea = world2viewport(ea, s);
         eb = world2viewport(eb, s);
-        draw_line_3d(s, ea, eb, mat_shader_f, &mat);
-    }
+        draw_line_3d(s, ea, eb, none_shader_f, &mat);
+    }*/
 
     return r;
 }
@@ -192,10 +190,10 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     scene = s;
 
 
-    scene_create_cube(s, 100, 0, -5, 0, rgba2int((rgba_t){255, 140, 80, 255}),
+    scene_create_cube(s, 100, 0, -5, 4, rgba2int((rgba_t){255, 140, 80, 255}),
         100, 100, 100);
 
-    scene_create_sphere(s, -60, 200, 20, 0, rgba2int((rgba_t){232, 224, 142, 255}),
+    scene_create_sphere(s, -60, 200, 20, 1, rgba2int((rgba_t){232, 224, 142, 255}),
         20, 100);
 
     scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 100}));
@@ -542,12 +540,13 @@ export int scene_create_cube(scene_t *s, int x, int y, int z,
     m = model_add_face_arr(m, (vertexid_t[3]){2, 3, 6}, (normalid_t[3]){5, 5, 5}, 3);
     m = model_add_face_arr(m, (vertexid_t[3]){6, 7, 3}, (normalid_t[3]){5, 5, 5}, 3);
 
-    m->props.shaders.f = phong_shader_f;
-    m->props.shaders.v = test_shader_v;
+    m->props.shaders.f = scene_select_shder_f(shader);
+    m->props.shaders.v = scene_select_shder_v(shader);
 
     return scene_add_model(s, m);
 }
 
+// TODO(20.12.18): Fix Top/bottom part linking
 export int scene_create_sphere(scene_t *s, int x, int y, int z,
     int shader, int color, int segs, int r)
 {
@@ -631,8 +630,50 @@ export int scene_create_sphere(scene_t *s, int x, int y, int z,
             (normalid_t[3]){1, vid + i, vid + ((i + 1) % (segs))}, 3);
     }
 
-    m->props.shaders.f = phong_shader_f;
-    m->props.shaders.v = test_shader_v;
+    m->props.shaders.f = scene_select_shder_f(shader);
+    m->props.shaders.v = scene_select_shder_v(shader);
 
     return scene_add_model(s, m);
+}
+
+void *scene_select_shder_v(int n)
+{
+    switch(n)
+    {
+        case 0:
+            return none_shader_v;
+        case 1:
+            return plain_shader_v;
+        case 2:
+            return none_shader_v;
+        case 3:
+            return none_shader_v;
+        case 4:
+            return phong_shader_v;
+        case 5:
+            return none_shader_v;
+        default:
+            return none_shader_v;
+    }
+}
+
+void *scene_select_shder_f(int n)
+{
+    switch(n)
+    {
+        case 0:
+            return none_shader_f;
+        case 1:
+            return plain_shader_f;
+        case 2:
+            return none_shader_f;
+        case 3:
+            return none_shader_f;
+        case 4:
+            return phong_shader_f;
+        case 5:
+            return none_shader_f;
+        default:
+            return none_shader_f;
+    }
 }

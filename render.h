@@ -16,6 +16,7 @@ int render_mode;
 #define RENDER_NORMS 32
 #define RENDER_VERTS 64
 #define RENDER_LIGHTS 128
+#define RENDER_COLORED 256
 
 typedef struct evertex_st {
     vertex_t v;
@@ -55,7 +56,10 @@ void draw_fragment(scene_t *s, evertex_t *vs, const model_props_t *props);
 export void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat);
 export void draw_triangle_row(scene_t *s, evertex_t *vs, shader_f_t shf,
     const mat_t *mat, int y, yield_evertex_t *ya, yield_evertex_t *yb);
+yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps);
+void yield_evertex(evertex_t *ev, yield_evertex_t *yv);
 void draw_zbuf(scene_t *s);
+void draw_norm(scene_t *s, evertex_t v);
 
 #define YIELD_EVERTEX(_ev, _yv) \
 (_yv)->ev.v.x += (_yv)->dev.v.x; \
@@ -79,6 +83,3 @@ void draw_zbuf(scene_t *s);
 (_ev)->c.b = clamp(lroundf((_yv)->evc.b += (_yv)->devc.b), 0, 255); \
 (_ev)->c.a = clamp(lroundf((_yv)->evc.a += (_yv)->devc.a), 0, 255); \
 (_yv)->t += (_yv)->d;
-
-yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps);
-void yield_evertex(evertex_t *ev, yield_evertex_t *yv);

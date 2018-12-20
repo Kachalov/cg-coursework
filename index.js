@@ -15,8 +15,7 @@ document.getElementById('scr-size').innerHTML = scrcont.clientWidth + ' x ' +
 
 const ctx = document.getElementById('screen').getContext('2d');
 setpixelated(ctx);
-// TODO (22.11.18): Troubles with bitmask rendering
-var width = scrcont.clientWidth + 8;
+var width = scrcont.clientWidth;
 var height = scrcont.clientHeight;
 let image = ctx.createImageData(width, height);
 
@@ -60,7 +59,7 @@ webassembly
     var delay = 0;
     var lastStatFps = maxFps;
     function frame(render_mode) {
-        render_mode = render_mode === undefined ?
+        render_mode = (render_mode === undefined || render_mode === null) ?
             1 * document.getElementById('face-mode').checked +
             2 * document.getElementById('wireframe-mode').checked +
             4 * document.getElementById('zbuf-mode').checked +
@@ -69,6 +68,7 @@ webassembly
             32 * document.getElementById('norms-mode').checked +
             64 * document.getElementById('verts-mode').checked +
             128 * document.getElementById('lights-mode').checked +
+            256 * document.getElementById('colored-mode').checked +
             1 - 1 : render_mode;
         //ctx.clearRect(0, 0, scrcont.clientHeight, scrcont.clientWidth);
         //setInterval(1000);
@@ -165,7 +165,10 @@ webassembly
                 return;
 
             waFuns.move_viewport(waScene, hor/180*3.1415,  vert/180*3.1415, 0, 0);
-            nextFrame(1);
+            if (document.getElementById('fast-mode').checked)
+                nextFrame(2 + 128);
+            else
+                nextFrame();
         });
 
         addEventListener("keyup", function(e) {

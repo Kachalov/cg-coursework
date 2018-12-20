@@ -84,3 +84,5 @@ export int scene_create_cube(scene_t *s, int x, int y, int z,
     int shader, int color, int w, int h, int d);
 export int scene_create_sphere(scene_t *s, int x, int y, int z,
     int shader, int color, int segs, int r);
+void *scene_select_shder_v(int n);
+void *scene_select_shder_f(int n);
