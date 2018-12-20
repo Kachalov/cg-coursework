@@ -1,268 +1,280 @@
 <!doctype html>
 <html lang="en">
+
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="Computer Graphics coursework">
+    <meta name="author" content="Alexey Kachalov">
 
 
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+    integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+    crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+    integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+    crossorigin="anonymous"></script>
 
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+    integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+    crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css"
+    integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz"
+    crossorigin="anonymous">
 
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/2.3.3/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/2.3.3/css/bootstrap-colorpicker.min.css"
+    rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/2.3.3/js/bootstrap-colorpicker.min.js"></script>
     <title>Computer Graphics coursework</title>
 
     <style>
-        /* Sticky footer styles
--------------------------------------------------- */
-html {
-  //position: relative;
-  //min-height: 100%;
-    height: 100%;
-}
-body {
-  margin-bottom: 60px; /* Margin bottom by footer height */
-    margin: 0;
-    padding: 0;
-    background-color: #000;
-    height: calc(100% - 60px);
-    overflow: hidden;
-}
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 60px; /* Set the fixed height of the footer here */
-  line-height: 60px; /* Vertically center the text there */
-  background-color: #f5f5f5;
-}
+      html {
+        //position: relative;
+        //min-height: 100%;
+        height: 100%;
+      }
 
-.right-panel {
-    position: absolute;
-    display: inline-block;
-    right: 0px;
-    top: 0px;
-    height: calc(100% - 60px);
-    border-left: 1px #aaa solid;
-    background-color: white;
-    width: 400px;
-    overflow-y: scroll;
-}
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        height: calc(100% - 60px);
+        overflow: hidden;
+      }
 
+      .footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 60px;
+        line-height: 60px;
+        background-color: #f5f5f5;
+      }
 
-/* Custom page CSS
--------------------------------------------------- */
-/* Not required for template or sticky footer method. */
+      .right-panel {
+        position: absolute;
+        display: inline-block;
+        right: 0px;
+        top: 0px;
+        height: calc(100% - 60px);
+        border-left: 1px #aaa solid;
+        background-color: white;
+        width: 400px;
+        overflow-y: scroll;
+      }
 
-.container {
-  width: auto;
-  max-width: 680px;
-  padding: 0 15px;
-}
-
-        </style>
+      .container {
+        width: auto;
+        max-width: 680px;
+        padding: 0 15px;
+      }
+    </style>
   </head>
 
   <body>
-  <div id="screen-container" style="
-  height: 100%; width: calc(100% - 400px);">
-    <canvas id="screen" style="margin: 0px; padding: 0px; position: relative;"></canvas>
-  </div>
-  <div class="right-panel">
-
-<div class="container">
-    <div class="card w-100 mt-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Info</h5>
-    <h6 class="card-subtitle mb-2 text-muted">Description</h6>
-    <div class="card-text">
-        Перемещать источник света с помощью <br /><code>&#x2190;</code>
-        <code>&#x2191;</code> <code>&#x2192;</code> <code>&#x2193;</code>
-        </div>
-  </div>
-</div>
-
-      <div class="card w-100 mt-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Properties</h5>
-    <h6 class="card-subtitle mb-2 text-muted" id="scr-size">X x Y</h6>
-    <div class="card-text">
-        <div id="fps"></div>
-        <div class="form-group form-check">
-            <input type="checkbox" checked class="form-check-input" id="fast-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Fast mode</label><br/>
-            <input type="checkbox" checked class="form-check-input" id="face-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Face</label><br/>
-    <input type="checkbox" class="form-check-input" id="wireframe-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="wireframe-mode">Wireframe</label><br/>
-            <input type="checkbox" class="form-check-input" id="zbuf-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="zbuf-mode">Zbuf</label><br/>
-        <input type="checkbox" class="form-check-input" id="grid-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Grid</label><br/>
-            <input type="checkbox" class="form-check-input" id="xyz-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">XYZ</label><br/>
-            <input type="checkbox" class="form-check-input" id="norms-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Normals</label><br/>
-            <input type="checkbox" class="form-check-input" id="verts-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Vertices</label><br/>
-            <input type="checkbox" checked class="form-check-input" id="lights-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Lights</label><br/>
-            <input type="checkbox" class="form-check-input" id="colored-mode" onchange="nextFrame()">
-    <label class="form-check-label w-100" for="grid-mode">Colored</label><br/>
-  </div>
-        <button class="btn btn-success w-100" onclick="nextFrame()">Render frame</button>
+    <div id="screen-container" style="height: 100%; width: calc(100% - 400px);">
+      <canvas id="screen" style="margin: 0px; padding: 0px; position: relative;"></canvas>
     </div>
-  </div>
-</div>
+    <div class="right-panel">
 
-    <div class="card w-100 mt-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Logs</h5>
-    <div class="card-text">
-        <canvas id="stat" style="" width="300"></canvas>
-        <div id="logs" style="font-size: 12px;"></div>
-    </div>
-  </div>
-</div>
+      <div class="container">
+        <div class="card w-100 mt-3" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">Info</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Description</h6>
+            <div class="card-text">
+              Перемещать источник света с помощью
+              <br /><code>&#x2190;</code>
+              <code>&#x2191;</code> <code>&#x2192;</code> <code>&#x2193;</code>
+            </div>
+          </div>
+        </div>
 
-    <div class="card w-100 mt-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Add object</h5>
-    <div class="card-text">
-        <label class="mt-1" for="obj-type">Type</label>
-    <select class="form-control" id="obj-type">
-      <option value="0">Cube</option>
-      <option value="1">Sphere</option>
-      <!--<option value="2">Cylinder</option>
-      <option value="3">Thor</option>-->
-    </select>
-        <label class="mt-1" for="obj-shader">Shader</label>
-    <select class="form-control" id="obj-shader">
-      <option value="0">None</option>
-      <option value="1">Plain</option>
-      <option value="2">Lambert</option>
-        <option value="3">Guro</option>
-        <option value="4">Phong</option>
-        <option value="5">Blinn-Phong</option>
-    </select>
-        <div class="w-100 mt-1" id="obj-color"></div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">x</div>
+        <div class="card w-100 mt-3" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">Properties</h5>
+            <h6 class="card-subtitle mb-2 text-muted" id="scr-size">X x Y</h6>
+            <div class="card-text">
+              <div id="fps"></div>
+              <div class="form-group form-check">
+                <input type="checkbox" checked class="form-check-input" id="fast-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Fast mode</label>
+                <br/>
+                <input type="checkbox" checked class="form-check-input" id="face-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Face</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="wireframe-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="wireframe-mode">Wireframe</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="zbuf-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="zbuf-mode">Zbuf</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="grid-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Grid</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="xyz-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">XYZ</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="norms-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Normals</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="verts-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Vertices</label>
+                <br/>
+                <input type="checkbox" checked class="form-check-input" id="lights-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Lights</label>
+                <br/>
+                <input type="checkbox" class="form-check-input" id="colored-mode" onchange="nextFrame()">
+                <label class="form-check-label w-100" for="grid-mode">Colored</label>
+                <br/>
+              </div>
+              <button class="btn btn-success w-100" onclick="nextFrame()">Render frame</button>
+            </div>
+          </div>
         </div>
-        <input type="text" class="form-control" id="obj-x" placeholder="" value="0">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">y</div>
-        </div>
-        <input type="text" class="form-control" id="obj-y" placeholder="" value="0">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">z</div>
-        </div>
-        <input type="text" class="form-control" id="obj-z" placeholder="" value="0">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">Segments</div>
-        </div>
-        <input type="text" class="form-control" id="obj-segs" placeholder="" value="1">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">Radius</div>
-        </div>
-        <input type="text" class="form-control" id="obj-r" placeholder="" value="50">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">Width</div>
-        </div>
-        <input type="text" class="form-control" id="obj-w" placeholder="" value="100">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">Height</div>
-        </div>
-        <input type="text" class="form-control" id="obj-h" placeholder="" value="100">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">Deep</div>
-        </div>
-        <input type="text" class="form-control" id="obj-d" placeholder="" value="100">
-      </div>
-        <button class="btn btn-success w-100 mt-1" onclick="(function(){
-            let x = Number($('#obj-x').val()),
-                y = Number($('#obj-y').val()),
-                z = Number($('#obj-z').val()),
-                t = Number($('#obj-type').val()),
-                shader = Number($('#obj-shader').val()),
-                segs = Number($('#obj-segs').val()),
-                r = Number($('#obj-r').val()),
-                w = Number($('#obj-w').val()),
-                h = Number($('#obj-h').val()),
-                d = Number($('#obj-d').val()),
 
-                rgb = $('#obj-color .colorpicker-color')
-                .css('background-color').match(/\d+/g);
-            let rgba = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + (255);
-            switch (t){
-                case 0:
-                    waFuns.scene_create_cube(
-                        waScene, x, y, z, shader, rgba, w, h, d);
-                    break;
-                case 1:
-                    waFuns.scene_create_sphere(
-                        waScene, x, y, z, shader, rgba, segs, r);
-                    break;
-                default:
-                    alert('Not implemented');
-                    break;
+        <div class="card w-100 mt-3" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">Logs</h5>
+            <div class="card-text">
+              <canvas id="stat" style="" width="300"></canvas>
+              <div id="logs" style="font-size: 12px;"></div>
+            </div>
+          </div>
+        </div>
 
-            }
-            nextFrame();
-        })();">Add object</button>
-    </div>
-  </div>
-</div>
+        <div class="card w-100 mt-3" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">Add object</h5>
+            <div class="card-text">
+              <label class="mt-1" for="obj-type">Type</label>
+              <select class="form-control" id="obj-type">
+                <option value="0">Cube</option>
+                <option value="1">Sphere</option>
+                <!--<option value="2">Cylinder</option>
+                <option value="3">Thor</option>-->
+              </select>
+              <label class="mt-1" for="obj-shader">Shader</label>
+              <select class="form-control" id="obj-shader">
+                <option value="0">None</option>
+                <option value="1">Plain</option>
+                <option value="2">Lambert</option>
+                <option value="3">Guro</option>
+                <option value="4">Phong</option>
+                <option value="5">Blinn-Phong</option>
+              </select>
+              <div class="w-100 mt-1" id="obj-color"></div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">x</div>
+                </div>
+                <input type="text" class="form-control" id="obj-x" placeholder="" value="0">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">y</div>
+                </div>
+                <input type="text" class="form-control" id="obj-y" placeholder="" value="0">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">z</div>
+                </div>
+                <input type="text" class="form-control" id="obj-z" placeholder="" value="0">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Segments</div>
+                </div>
+                <input type="text" class="form-control" id="obj-segs" placeholder="" value="1">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Radius</div>
+                </div>
+                <input type="text" class="form-control" id="obj-r" placeholder="" value="50">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Width</div>
+                </div>
+                <input type="text" class="form-control" id="obj-w" placeholder="" value="100">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Height</div>
+                </div>
+                <input type="text" class="form-control" id="obj-h" placeholder="" value="100">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">Deep</div>
+                </div>
+                <input type="text" class="form-control" id="obj-d" placeholder="" value="100">
+              </div>
+              <button class="btn btn-success w-100 mt-1" onclick="(function(){
+                let x = Number($('#obj-x').val()),
+                    y = Number($('#obj-y').val()),
+                    z = Number($('#obj-z').val()),
+                    t = Number($('#obj-type').val()),
+                    shader = Number($('#obj-shader').val()),
+                    segs = Number($('#obj-segs').val()),
+                    r = Number($('#obj-r').val()),
+                    w = Number($('#obj-w').val()),
+                    h = Number($('#obj-h').val()),
+                    d = Number($('#obj-d').val()),
 
-      <div class="card w-100 mt-3" style="width: 18rem;">
-  <div class="card-body">
-    <h5 class="card-title">Add Light</h5>
-    <h6 class="card-subtitle mb-2 text-muted"></h6>
-    <div class="card-text">
-        <div class="w-100" id="light-color"></div>
-      <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">x</div>
+                    rgb = $('#obj-color .colorpicker-color')
+                    .css('background-color').match(/\d+/g);
+                let rgba = (rgb[0] << 24) + (rgb[1] << 16) + (rgb[2] << 8) + (255);
+                switch (t){
+                    case 0:
+                        waFuns.scene_create_cube(
+                            waScene, x, y, z, shader, rgba, w, h, d);
+                        break;
+                    case 1:
+                        waFuns.scene_create_sphere(
+                            waScene, x, y, z, shader, rgba, segs, r);
+                        break;
+                    default:
+                        alert('Not implemented');
+                        break;
+
+                }
+                nextFrame();
+              })();">Add object</button>
+            </div>
+          </div>
         </div>
-        <input type="text" class="form-control" id="light-x" placeholder="" value="0">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">y</div>
-        </div>
-        <input type="text" class="form-control" id="light-y" placeholder="" value="0">
-      </div>
-        <div class="input-group mt-1">
-        <div class="input-group-prepend">
-          <div class="input-group-text">z</div>
-        </div>
-        <input type="text" class="form-control" id="light-z" placeholder="" value="0">
-      </div>
-        <button class="btn btn-success w-100 mt-1" onclick="(
-            function(){
+
+        <div class="card w-100 mt-3" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">Add Light</h5>
+            <h6 class="card-subtitle mb-2 text-muted"></h6>
+            <div class="card-text">
+              <div class="w-100" id="light-color"></div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">x</div>
+                </div>
+                <input type="text" class="form-control" id="light-x" placeholder="" value="0">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">y</div>
+                </div>
+                <input type="text" class="form-control" id="light-y" placeholder="" value="0">
+              </div>
+              <div class="input-group mt-1">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">z</div>
+                </div>
+                <input type="text" class="form-control" id="light-z" placeholder="" value="0">
+              </div>
+              <button class="btn btn-success w-100 mt-1" onclick="(function(){
                 let x = Number($('#light-x').val()),
                     y = Number($('#light-y').val()),
                     z = Number($('#light-z').val()),
@@ -272,47 +284,38 @@ body {
                     (rgb.length === 3 ? 255 :(rgb[3]*100+rgb[4])/100*255);
                 waFuns.scene_create_light(waScene, x, y, z, rgba);
                 nextFrame();
-            })();">Add light</button>
-    </div>
-  </div>
-</div>
+              })();">Add light</button>
+            </div>
+          </div>
+        </div>
 
-    <div class="w-100 mt-3"></div>
+        <div class="w-100 mt-3"></div>
+      </div>
     </div>
-</div>
-      <!-- Begin page content -->
-    <!--<main role="main" class="container" style="background-color: #ccc;">
-      <h1 class="mt-5">Sticky footer</h1>
-      <p class="lead">Pin a fixed-height footer to the bottom of the viewport in desktop browsers with this custom HTML and CSS.</p>
-      <p>Use <a href="../sticky-footer-navbar">the sticky footer with a fixed navbar</a> if need be, too.</p>
-    <div id="fps"></div>
-<div id="logs" style="font-size: 12px;"></div>
-    </main>-->
     <footer class="footer">
       <div class="container text-center">
         <span class="text-muted">Computer graphics coursework / &copy; Alexey Kachalov 2018</span>
       </div>
     </footer>
+
+    <script src="webassembly.js"></script>
+    <script src="index.js"></script>
+
+
+    <script>
+      $(function() {
+        $('#light-color, #obj-color').colorpicker({
+          color: '#FFFFFF',
+          inline: true,
+          container: true,
+          useAlpha: false
+        });
+
+        $('#light-color').on('colorpickerChange', function(event) {
+          alert(event.color.toString());
+        });
+      });
+    </script>
   </body>
 
-<script src="webassembly.js"></script>
-<script src="index.js"></script>
-
-
-<script>
-    $(function () {
-      // Basic instantiation:
-      $('#light-color, #obj-color').colorpicker({
-      color: '#FFFFFF',
-      inline: true,
-      container: true,
-      useAlpha: false
-    });
-
-      // Example using an event, to change the color of the .jumbotron background:
-      $('#light-color').on('colorpickerChange', function(event) {
-          alert(event.color.toString());
-      });
-    });
-  </script>
 </html>
