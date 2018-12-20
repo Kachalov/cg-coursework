@@ -97,12 +97,22 @@ body {
     <div class="card-text">
         <div id="fps"></div>
         <div class="form-group form-check">
-    <input type="checkbox" class="form-check-input" id="wireframe-mode">
+            <input type="checkbox" checked class="form-check-input" id="face-mode" onchange="nextFrame()">
+    <label class="form-check-label w-100" for="grid-mode">Face</label><br/>
+    <input type="checkbox" class="form-check-input" id="wireframe-mode" onchange="nextFrame()">
     <label class="form-check-label w-100" for="wireframe-mode">Wireframe</label><br/>
-            <input type="checkbox" class="form-check-input" id="zbuf-mode">
+            <input type="checkbox" class="form-check-input" id="zbuf-mode" onchange="nextFrame()">
     <label class="form-check-label w-100" for="zbuf-mode">Zbuf</label><br/>
-        <input type="checkbox" class="form-check-input" id="grid-mode">
+        <input type="checkbox" class="form-check-input" id="grid-mode" onchange="nextFrame()">
     <label class="form-check-label w-100" for="grid-mode">Grid</label><br/>
+            <input type="checkbox" class="form-check-input" id="xyz-mode" onchange="nextFrame()">
+    <label class="form-check-label w-100" for="grid-mode">XYZ</label><br/>
+            <input type="checkbox" class="form-check-input" id="norms-mode" onchange="nextFrame()">
+    <label class="form-check-label w-100" for="grid-mode">Normals</label><br/>
+            <input type="checkbox" class="form-check-input" id="verts-mode" onchange="nextFrame()">
+    <label class="form-check-label w-100" for="grid-mode">Vertices</label><br/>
+            <input type="checkbox" checked class="form-check-input" id="lights-mode" onchange="nextFrame()">
+    <label class="form-check-label w-100" for="grid-mode">Lights</label><br/>
   </div>
         <button class="btn btn-success w-100" onclick="nextFrame()">Render frame</button>
     </div>
@@ -127,8 +137,8 @@ body {
     <select class="form-control" id="obj-type">
       <option value="0">Cube</option>
       <option value="1">Sphere</option>
-      <option value="2">Cyllinder</option>
-      <option value="3">Thor</option>
+      <!--<option value="2">Cylinder</option>
+      <option value="3">Thor</option>-->
     </select>
         <label class="mt-1" for="obj-shader">Shader</label>
     <select class="form-control" id="obj-shader">
@@ -212,8 +222,6 @@ body {
                     waFuns.scene_create_sphere(
                         waScene, x, y, z, shader, rgba, segs, r);
                     break;
-                case 2:
-                case 3:
                 default:
                     alert('Not implemented');
                     break;

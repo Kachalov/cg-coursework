@@ -61,10 +61,15 @@ webassembly
     var lastStatFps = maxFps;
     function frame(render_mode) {
         render_mode = render_mode === undefined ?
-            1 * document.getElementById('wireframe-mode').checked +
-            2 * document.getElementById('zbuf-mode').checked +
-            4 * document.getElementById('grid-mode').checked
-            : render_mode;
+            1 * document.getElementById('face-mode').checked +
+            2 * document.getElementById('wireframe-mode').checked +
+            4 * document.getElementById('zbuf-mode').checked +
+            8 * document.getElementById('grid-mode').checked +
+            16 * document.getElementById('xyz-mode').checked +
+            32 * document.getElementById('norms-mode').checked +
+            64 * document.getElementById('verts-mode').checked +
+            128 * document.getElementById('lights-mode').checked +
+            1 - 1 : render_mode;
         //ctx.clearRect(0, 0, scrcont.clientHeight, scrcont.clientWidth);
         //setInterval(1000);
         /*for (var j = 0; j < scr бесcont.clientHeight; j++) {

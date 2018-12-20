@@ -15,7 +15,12 @@ void frame(scene_t *s, int render)
 
     if (render_mode & RENDER_GRID)
         draw_grid(s, 20, 26);
-    draw_lights(s);
+
+    if (render_mode & RENDER_XYZ)
+        draw_xyz(s);
+
+    if (render_mode & RENDER_LIGHTS)
+        draw_lights(s);
 
     model = s->models.d;
     for (int i = 0; i < s->models.l; i++, model++)
@@ -23,7 +28,7 @@ void frame(scene_t *s, int render)
         draw_model(s, *model);
     }
 
-    if ((render_mode & RENDER_ZBUF) != 0)
+    if (render_mode & RENDER_ZBUF)
         draw_zbuf(s);
 }
 
@@ -34,21 +39,6 @@ void draw_grid(scene_t *s, int size, int count)
 
     a.v = (v3_t){0.0, 0, 0};
     a = world2viewport(a, s);
-
-    mat.ambient = (rgba_t){0, 0, 255, 255};
-    b.v = (v3_t){100, 0, 0};
-    b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
-
-    mat.ambient = (rgba_t){255, 0, 0, 255};
-    b.v = (v3_t){0, 100, 0};
-    b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
-
-    mat.ambient = (rgba_t){255, 255, 0, 255};
-    b.v = (v3_t){0, 0, 100};
-    b = world2viewport(b, s);
-    draw_line_3d(s, a, b, mat_shader_f, &mat);
 
     mat.ambient = (rgba_t){160, 160, 160, 255};
     for (int x = -count / 2; x <= count - (count / 2); x++)
@@ -72,13 +62,30 @@ void draw_grid(scene_t *s, int size, int count)
         b = world2viewport(b, s);
         draw_line_3d(s, a, b, mat_shader_f, &mat);
     }
+}
 
-    /*b.v.x = b.v.y = b.v.z = 0;
-    b = world2viewport(b, s);
-    a.wv = a.v = (v3_t){-140, -240, 230};
+void draw_xyz(scene_t *s)
+{
+    evertex_t a, b;
+    mat_t mat;
+
+    a.v = (v3_t){0.0, 0, 0};
     a = world2viewport(a, s);
+
     mat.ambient = (rgba_t){0, 0, 255, 255};
-    draw_line_3d(s, a, b, mat_shader_f, &mat);*/
+    b.v = (v3_t){100, 0, 0};
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
+
+    mat.ambient = (rgba_t){255, 0, 0, 255};
+    b.v = (v3_t){0, 100, 0};
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
+
+    mat.ambient = (rgba_t){255, 255, 0, 255};
+    b.v = (v3_t){0, 0, 100};
+    b = world2viewport(b, s);
+    draw_line_3d(s, a, b, mat_shader_f, &mat);
 }
 
 void draw_lights(scene_t *s)
@@ -152,7 +159,7 @@ void draw_model(scene_t *s, const model_t *model)
         draw_model_face(s, model, face);
     }
 
-    if (render_mode & RENDER_WIREFRAME)
+    if (render_mode & RENDER_VERTS)
         for (int i = 0; i < model->vs.l; i++)
         {
             rgba_t c = (rgba_t){0, 255, 0, 255};
@@ -254,81 +261,41 @@ void draw_triangle(scene_t *s, evertex_t *vs, shader_f_t shf, const mat_t *mat)
 {
     evertex_t tmp;
     yield_evertex_t ya, yb, ytmp;
-    //console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
-    //console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);
 
-    if ((render_mode & RENDER_WIREFRAME) == 0) {
-    int min_y = vs[0].v.y;//min(s->canv->h, max(0, vs[0].v.y));
-    int mid_y = vs[1].v.y;//min(s->canv->h, max(0, vs[1].v.y));
-    int max_y = vs[2].v.y;//min(s->canv->h, max(0, vs[2].v.y));
+    if (render_mode & RENDER_FACE) {
+    int min_y = vs[0].v.y;
+    int mid_y = vs[1].v.y;
+    int max_y = vs[2].v.y;
 
-    ya = yield_evertex_init(vs[0], vs[1], vs[0].v.y - vs[1].v.y);
-    yb = yield_evertex_init(vs[0], vs[2], vs[0].v.y - vs[2].v.y);
+    ya = yield_evertex_init(vs[0], vs[1], min_y - mid_y);
+    yb = yield_evertex_init(vs[0], vs[2], min_y - max_y);
 
     ya.dev.v.y = 1;
     yb.dev.v.y = 1;
 
-    /*ya.evc.r = 255;
-    ya.evc.g = 0;
-    ya.evc.b = 0;
-    ya.evc.a = 255;
-    ya.devc.r = ya.devc.g = ya.devc.b = ya.devc.a = 0;
-    yb.evc.r = 255;
-    yb.evc.g = 0;
-    yb.evc.b = 0;
-    yb.evc.a = 255;
-    yb.devc.r = yb.devc.g = yb.devc.b = yb.devc.a = 0;*/
-    /*console_log("X %lf %lf %lf", vs[0].v.x, vs[1].v.x, vs[2].v.x);
-    console_log("Y %lf %lf %lf", vs[0].v.y, vs[1].v.y, vs[2].v.y);*/
-
-    for (int y = min_y; y < mid_y; y++)
-        draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
+    if (min_y != mid_y)
+        for (int y = min_y; y <= mid_y; y++)
+            draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
 
     tmp = vs[2];
     vs[2] = vs[0];
     vs[0] = tmp;
 
     ytmp = ya;
-    ya = yield_evertex_init(vs[0], vs[1], vs[1].v.y - vs[0].v.y);
-    //ya.t = ytmp.t;
-    //ya.d = ytmp.d;
-    //ya.ev = ytmp.ev;
-    //ya.evc = ytmp.evc;
-
-    ytmp = yb;
-    yb = yield_evertex_init(vs[0], vs[2], vs[2].v.y - vs[0].v.y);
-    //yb.t = ytmp.t;
-    //yb.d = ytmp.d;
-    //yb.ev = ytmp.ev;
-    //yb.evc = ytmp.evc;
+    ya = yield_evertex_init(vs[0], vs[1], mid_y - max_y);
+    yb = yield_evertex_init(vs[0], vs[2], min_y - max_y);
 
     ya.dev.v.y = -1;
     yb.dev.v.y = -1;
 
-    /*ya.evc.r = 0;
-    ya.evc.g = 255;
-    ya.evc.b = 0;
-    ya.evc.a = 255;
-    ya.devc.r = ya.devc.g = ya.devc.b = ya.devc.a = 0;
-    yb.evc.r = 0;
-    yb.evc.g = 255;
-    yb.evc.b = 0;
-    yb.evc.a = 255;
-    yb.devc.r = yb.devc.g = yb.devc.b = yb.devc.a = 0;*/
-    /*console_log("X %lf %lf %lf", ya.ev.v.x, ya.ev.v.x, ya.ev.v.z);
-    console_log("Y %lf %lf %lf", yb.ev.v.y, yb.ev.v.y, yb.ev.v.z);*/
-
-    //for (int y = max_y; y >= mid_y; y--)
-    for (int y = mid_y; y < max_y; y++)
-        draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
-
-    /*console_log("X %lf %lf %lf", ya.ev.v.x, ya.ev.v.x, ya.ev.v.z);
-    console_log("Y %lf %lf %lf", yb.ev.v.y, yb.ev.v.y, yb.ev.v.z);*/
-    }
+    if (mid_y != max_y)
+        for (int y = mid_y; y <= max_y; y++)
+            draw_triangle_row(s, vs, shf, mat, y, &ya, &yb);
+        }
 
     pixel_t ps[3];
 
-    if ((render_mode & RENDER_WIREFRAME) != 0) {
+    if (render_mode & RENDER_WIREFRAME) {
     for (int i = 0; i < 3; i++)
     {
         ps[i].pos.x = vs[i].v.x;
@@ -355,11 +322,27 @@ void draw_triangle_row(
     evertex_t *ev;
     yield_evertex_t *yv;
 
-    ev = &va;
+    /*ev = &va;
     YIELD_EVERTEX(ev, ya);
 
     ev = &vb;
-    YIELD_EVERTEX(ev, yb);
+    YIELD_EVERTEX(ev, yb);*/
+
+    va = ya->ev;
+    va.c = (rgba_t){
+        clamp(ya->evc.r, 0, 255),
+        clamp(ya->evc.g, 0, 255),
+        clamp(ya->evc.b, 0, 255),
+        clamp(ya->evc.a, 0, 255),
+    };
+
+    vb = yb->ev;
+    vb.c = (rgba_t){
+        clamp(yb->evc.r, 0, 255),
+        clamp(yb->evc.g, 0, 255),
+        clamp(yb->evc.b, 0, 255),
+        clamp(yb->evc.a, 0, 255),
+    };
 
     if (va.v.x > vb.v.x)
     {
@@ -374,7 +357,7 @@ void draw_triangle_row(
     float t;
 
     yield_evertex_t yi;
-    evertex_t vi;
+    evertex_t vi = va;
     yi = yield_evertex_init(va, vb, va.v.x - vb.v.x);
     yi.dev.v.x = 1;
     yi.dev.v.y = 0;
@@ -385,9 +368,9 @@ void draw_triangle_row(
     /*for (int i = va.v.x; i < 0; i++)
         YIELD_EVERTEX(ev, yv);*/
 
-    for (int i = va.v.x; i <= min(vb.v.x - 1, s->canv->w - 1); i++)
+    for (int i = va.v.x; i <= min(vb.v.x, s->canv->w - 1); i++)
     {
-        YIELD_EVERTEX(ev, yv);
+        //YIELD_EVERTEX(ev, yv);
 
         /*if (yi.ev.v.z < 0)
         {
@@ -399,7 +382,10 @@ void draw_triangle_row(
 
         if (vi.v.x < 0 || vi.v.x >= s->canv->w ||
         vi.v.y < 0 || vi.v.y >= s->canv->h)
+        {
+            YIELD_EVERTEX(ev, yv);
             continue;
+        }
 
         a = shf(vi, mat, s);
         if (a.pos.x >= 0 && a.pos.x < s->canv->w && a.pos.y >= 0 && a.pos.y < s->canv->h && (vi.v.z >= s->perspective_props.near && vi.v.z <= s->perspective_props.far))
@@ -409,14 +395,17 @@ void draw_triangle_row(
         //    (vi.v.z >= 0 && vi.v.z <= ZBUF_DEPTH))
         //    SET_PIXEL_Z(s->canv, s->zbuf, a.pos.x, a.pos.y, vi.v.z, &a.col);
 
-        //YIELD_EVERTEX(ev, yv);
+        YIELD_EVERTEX(ev, yv);
     }
+
+    YIELD_EVERTEX(ev, ya);
+    YIELD_EVERTEX(ev, yb);
 }
 
 yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
 {
     yield_evertex_t yv;
-    
+
     yv.d = steps == 0 ? 0 : 1.0 / steps;
     yv.t = 0;
     yv.ev = a;
@@ -428,24 +417,24 @@ yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
     yv.dev.v.x = (a.v.x - b.v.x) * yv.d;
     yv.dev.v.y = (a.v.y - b.v.y) * yv.d;
     yv.dev.v.z = (a.v.z - b.v.z) * yv.d;
-    
+
     yv.dev.wv.x = (a.wv.x - b.wv.x) * yv.d;
     yv.dev.wv.y = (a.wv.y - b.wv.y) * yv.d;
     yv.dev.wv.z = (a.wv.z - b.wv.z) * yv.d;
-    
+
     yv.dev.n.x = (a.n.x - b.n.x) * yv.d;
     yv.dev.n.y = (a.n.y - b.n.y) * yv.d;
     yv.dev.n.z = (a.n.z - b.n.z) * yv.d;
-    
+
     yv.dev.wn.x = (a.wn.x - b.wn.x) * yv.d;
     yv.dev.wn.y = (a.wn.y - b.wn.y) * yv.d;
     yv.dev.wn.z = (a.wn.z - b.wn.z) * yv.d;
-    
+
     yv.devc.r = (a.c.r - b.c.r) * yv.d;
     yv.devc.g = (a.c.g - b.c.g) * yv.d;
     yv.devc.b = (a.c.b - b.c.b) * yv.d;
     yv.devc.a = (a.c.a - b.c.a) * yv.d;
-    
+
     return yv;
 }
 

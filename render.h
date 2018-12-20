@@ -8,9 +8,14 @@
 
 
 int render_mode;
-#define RENDER_WIREFRAME 1
-#define RENDER_ZBUF 2
-#define RENDER_GRID 4
+#define RENDER_FACE 1
+#define RENDER_WIREFRAME 2
+#define RENDER_ZBUF 4
+#define RENDER_GRID 8
+#define RENDER_XYZ 16
+#define RENDER_NORMS 32
+#define RENDER_VERTS 64
+#define RENDER_LIGHTS 128
 
 typedef struct evertex_st {
     vertex_t v;
@@ -42,6 +47,7 @@ typedef struct yield_evertex_st {
 
 export void frame(scene_t *s, int render_mode);
 void draw_grid(scene_t *s, int size, int count);
+void draw_xyz(scene_t *s);
 void draw_lights(scene_t *s);
 void draw_model(scene_t *s, const model_t *model);
 void draw_model_face(scene_t *s, const model_t *model, const face_t *face);

@@ -140,7 +140,7 @@ evertex_t test_shader_v(const evertex_t *vs, int i, scene_t *s)
     //b = v3_sub(vs[2].v, vs[0].v);
     //r.n = v3_cross(a, b);
 
-    if ((render_mode & RENDER_WIREFRAME) != 0)
+    if (render_mode & RENDER_NORMS)
     {
         evertex_t ea, eb;
         mat_t mat;
@@ -188,12 +188,15 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->perspective_props.far = 2000;
 
     calculate_mtrx(s);
+    clear(s);
+    scene = s;
+
 
     scene_create_cube(s, 100, 0, -5, 0, rgba2int((rgba_t){255, 140, 80, 255}),
         100, 100, 100);
 
     scene_create_sphere(s, -60, 200, 20, 0, rgba2int((rgba_t){232, 224, 142, 255}),
-        15, 100);
+        20, 100);
 
     scene_create_light(s, -150, 50, 50, rgba2int((rgba_t){255, 242, 194, 100}));
 
@@ -366,8 +369,6 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
 
     // End of test part
 
-    scene = s;
-    clear(s);
     return s;
 }
 
