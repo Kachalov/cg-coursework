@@ -41,7 +41,19 @@ typedef struct yield_evertex_st {
         float g;
         float b;
         float a;
+    } evlight;
+    struct {
+        float r;
+        float g;
+        float b;
+        float a;
     } devc;
+    struct {
+        float r;
+        float g;
+        float b;
+        float a;
+    } devlight;
     double d;
     double t;
 } yield_evertex_t;
@@ -82,4 +94,8 @@ void draw_norm(scene_t *s, evertex_t v);
 (_ev)->c.g = clamp(lroundf((_yv)->evc.g += (_yv)->devc.g), 0, 255); \
 (_ev)->c.b = clamp(lroundf((_yv)->evc.b += (_yv)->devc.b), 0, 255); \
 (_ev)->c.a = clamp(lroundf((_yv)->evc.a += (_yv)->devc.a), 0, 255); \
+(_ev)->light.r = clamp(lroundf((_yv)->evlight.r += (_yv)->devlight.r), 0, 255); \
+(_ev)->light.g = clamp(lroundf((_yv)->evlight.g += (_yv)->devlight.g), 0, 255); \
+(_ev)->light.b = clamp(lroundf((_yv)->evlight.b += (_yv)->devlight.b), 0, 255); \
+(_ev)->light.a = clamp(lroundf((_yv)->evlight.a += (_yv)->devlight.a), 0, 255); \
 (_yv)->t += (_yv)->d;

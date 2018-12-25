@@ -50,6 +50,12 @@ v3_t v3_add(v3_t a, v3_t b)
     return (v3_t){a.x + b.x, a.y + b.y, a.z + b.z};
 }
 
+v4_t v4_add(v4_t a, v4_t b)
+{
+    return (v4_t){a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w};
+}
+
+
 v3_t v3_sub(v3_t a, v3_t b)
 {
     return (v3_t){a.x - b.x, a.y - b.y, a.z - b.z};
@@ -81,6 +87,16 @@ v3_t v3_scale(v3_t a, float k)
         a.x * k,
         a.y * k,
         a.z * k
+    };
+}
+
+v4_t v4_scale(v4_t a, float k)
+{
+    return (v4_t){
+        a.x * k,
+        a.y * k,
+        a.z * k,
+        a.w * k
     };
 }
 

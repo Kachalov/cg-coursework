@@ -40,7 +40,30 @@ evertex_t vertex2evertex(vertex_t v, v3_t n, scene_t *s)
     r.n = n;
     r = world2viewport(r, s);
 
+    r.c = (rgba_t){0, 0, 0, 0};
+    r.light = (rgba_t){0, 0, 0, 0};
+
     return r;
+}
+
+v4_t rgba2v4(rgba_t rgba)
+{
+    return (v4_t) {
+        rgba.r,
+        rgba.g,
+        rgba.b,
+        rgba.a
+    };
+}
+
+rgba_t v42rgba(v4_t v)
+{
+    return (rgba_t) {
+        clamp(v.x, 0, 255),
+        clamp(v.y, 0, 255),
+        clamp(v.z, 0, 255),
+        clamp(v.w, 0, 255),
+    };
 }
 
 int16_t find_line_x(point_t a, point_t b, int16_t y)

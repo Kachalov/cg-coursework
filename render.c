@@ -376,6 +376,11 @@ yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
     yv.evc.g = a.c.g;
     yv.evc.b = a.c.b;
     yv.evc.a = a.c.a;
+    
+    yv.evlight.r = a.light.r;
+    yv.evlight.g = a.light.g;
+    yv.evlight.b = a.light.b;
+    yv.evlight.a = a.light.a;
 
     yv.dev.v.x = (a.v.x - b.v.x) * yv.d;
     yv.dev.v.y = (a.v.y - b.v.y) * yv.d;
@@ -397,6 +402,11 @@ yield_evertex_t yield_evertex_init(evertex_t a, evertex_t b, int steps)
     yv.devc.g = (a.c.g - b.c.g) * yv.d;
     yv.devc.b = (a.c.b - b.c.b) * yv.d;
     yv.devc.a = (a.c.a - b.c.a) * yv.d;
+    
+    yv.devlight.r = (a.light.r - b.light.r) * yv.d;
+    yv.devlight.g = (a.light.g - b.light.g) * yv.d;
+    yv.devlight.b = (a.light.b - b.light.b) * yv.d;
+    yv.devlight.a = (a.light.a - b.light.a) * yv.d;
 
     return yv;
 }

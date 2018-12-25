@@ -28,7 +28,7 @@ pixel_t plain_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
 {
     pixel_t r;
 
-    r.col = mat->ambient;
+    r.col = a.light;
 
     // TODO
     r = phong_shader_f(a, mat, s);
@@ -39,7 +39,7 @@ pixel_t plain_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     return r;
 }
 
-evertex_t plain_shader_v(const evertex_t *vs, int i, scene_t *s)
+evertex_t plain_shader_v(evertex_t *vs, int i, scene_t *s)
 {
     evertex_t r = vs[i];
 
@@ -52,6 +52,42 @@ evertex_t plain_shader_v(const evertex_t *vs, int i, scene_t *s)
     {
         r.wn = vs[0].wn;
         r.n = vs[0].n;
+    }
+
+    v3_t amb;
+    v3_t p = r.wv;
+    v3_t n = r.wn;
+
+    v3_t id = {0, 0, 0};
+    float a = 0;
+    float alpha;
+
+    for (int lid = 0; lid < s->ls.l; lid++)
+    {
+        alpha = s->ls.d[lid].cols.ambient.a * 1.0 / 255;
+        a += alpha;
+        amb = (v3_t){
+            s->ls.d[lid].cols.ambient.r,
+            s->ls.d[lid].cols.ambient.g,
+            s->ls.d[lid].cols.ambient.b
+        };
+        v3_t l = v3_norm(v3_sub(s->ls.d[lid].pos, p));
+
+        id = v3_add(id, v3_scale(amb, fmax(v3_dot(n, l) * alpha, 0)));
+    }
+
+    r.light = (rgba_t){
+        clampf(id.x * r.c.r / 255, 0, 255),
+        clampf(id.y * r.c.g / 255, 0, 255),
+        clampf(id.z * r.c.b / 255, 0, 255),
+        clampf(a * 255, 0, 255),
+    };
+
+    if (i == 2)
+    {
+        vs[0].light = vs[1].light = vs[2].light = v42rgba(v4_scale(
+            v4_add(v4_add(
+            rgba2v4(vs[0].light), rgba2v4(vs[1].light)), rgba2v4(vs[2].light)), 1.0/3));
     }
 
     return r;

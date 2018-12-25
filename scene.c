@@ -16,7 +16,7 @@ void scene_example(scene_t *s)
         100, 100, 100);
 
     scene_create_sphere(
-        s, -60, 200, 20, 4,
+        s, -60, 200, 20, 1,
         rgba2int((rgba_t){232, 224, 142, 255}),
         20, 100);
 
