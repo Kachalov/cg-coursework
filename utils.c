@@ -12,12 +12,7 @@ evertex_t world2viewport(evertex_t v, scene_t *s)
     evertex_t r = v;
     v3_t v3;
 
-    m4_t mr = make_rot(
-        (90 + 40) * 1.0/180*3.1415,
-        (0) * 1.0/180*3.1415,
-        (30) * 1.0/180*3.1415);
-
-    v3 = m4_v3t_mul(&mr, &r.v);
+    v3 = m4_v3t_mul(&s->ortho_mtrx, &r.v);
     r.v = (v3_t){
         v3.x + s->canv->w / 2,
         v3.y + s->canv->h / 2,

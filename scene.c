@@ -20,9 +20,26 @@ void scene_example(scene_t *s)
         rgba2int((rgba_t){232, 224, 142, 255}),
         20, 100);
 
+    scene_create_sphere(
+        s, 160, -200, 50, 4,
+        rgba2int((rgba_t){128, 128, 128, 255}),
+        20, 50);
+
     scene_create_light(
         s, -150, 50, 50,
         rgba2int((rgba_t){255, 242, 194, 100}));
+
+    scene_create_light(
+        s, 200, 200, 250,
+        rgba2int((rgba_t){40, 25, 200, 50}));
+
+    scene_create_light(
+        s, 200, -200, 250,
+        rgba2int((rgba_t){200, 25, 40, 60}));
+
+    scene_create_light(
+        s, -200, -200, 250,
+        rgba2int((rgba_t){30, 200, 40, 50}));
 
     {
         m4_t m = s->mvp_mtrx;
@@ -90,6 +107,9 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->perspective_props.ratio = 1.0 * w / h;
     s->perspective_props.near = 0.1;
     s->perspective_props.far = 2000;
+
+    s->cam.x = 40;
+    s->cam.z = 30;
 
     calculate_mtrx(s);
     clear(s);
@@ -166,6 +186,13 @@ void calculate_mtrx(scene_t *s)
         s->canv->h * 4.0 / 4);
     m4_t vp = m4_m4_mul(&s->proj_mtrx, &s->view_mtrx);
     s->mvp_mtrx = vp;//m4_m4_mul(&s->viewport_mtrx, &vp);
+
+    s->ortho_mtrx = make_rot(
+        (90 + s->cam.x) * 1.0/180*3.1415,
+        0,
+        (s->cam.z) * 1.0/180*3.1415);
+    m4_t ort = m4_transp(&s->ortho_mtrx);
+    s->cam.dir = v3_norm(m4_v3t_mul(&ort, &(v3_t){0, 0, -1}));
 }
 
 //TODO(20.12.18): refactor
@@ -190,10 +217,12 @@ void move_viewport(scene_t *s, float hor, float vert, float tang, float norm)
     center = m3_v3t_mul(&mx, &center);
     s->viewport_props.center = v3_add(center, s->viewport_props.eye);*/
 
+    s->cam.z += hor * 180 / 3.1415  * 10;
+    s->cam.x += vert * 180 / 3.1415  * 10;
     calculate_mtrx(s);
 
-    s->ls.d[0].pos.x -= hor * 180 / 3.1415 * 10;
-    s->ls.d[0].pos.y += vert * 180 / 3.1415 * 10;
+    //s->ls.d[0].pos.x -= hor * 180 / 3.1415 * 10;
+    //s->ls.d[0].pos.y += vert * 180 / 3.1415 * 10;
 }
 
 export

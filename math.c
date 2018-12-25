@@ -116,6 +116,17 @@ m4_t m4_m4_mul(m4_t *a, m4_t *b)
     return m;
 }
 
+m4_t m4_transp(m4_t *a)
+{
+    m4_t m;
+
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            ((float *)&m)[i*4 + j] = ((float *)a)[j*4 + i];
+
+    return m;
+}
+
 v3_t m4_v3t_mul(m4_t *m, v3_t *v)
 {
     v3_t r;

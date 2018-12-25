@@ -57,7 +57,7 @@ webassembly
 
     var lastCalledTime = Date.now();
     var lastFtpUpdate = Date.now() - 1000;
-    var maxFps = 60;
+    var maxFps = 10;
     var delay = 0;
     var lastStatFps = maxFps;
 
@@ -125,13 +125,13 @@ webassembly
 
       }
 
-      /*requestAnimationFrame(frame);
+      /* requestAnimationFrame(function(){frame()});
       if (delay > 0)
         setTimeout(function() {
-          requestAnimationFrame(frame);
+          requestAnimationFrame(function(){frame()});
         }, delay);
       else
-        requestAnimationFrame(frame);*/
+        requestAnimationFrame(function(){frame()}); */
     };
     nextFrame = frame;
     frame();

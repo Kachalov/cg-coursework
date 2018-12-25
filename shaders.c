@@ -43,8 +43,16 @@ evertex_t plain_shader_v(const evertex_t *vs, int i, scene_t *s)
 {
     evertex_t r = vs[i];
 
-    r.wn = v3_norm(v3_add(v3_add(vs[0].wn,vs[1].wn),vs[2].wn));
-    r.n = v3_norm(v3_add(v3_add(vs[0].n,vs[1].n),vs[2].n));
+    if (i == 0)
+    {
+        r.wn = v3_norm(v3_add(v3_add(vs[0].wn,vs[1].wn),vs[2].wn));
+        r.n = v3_norm(v3_add(v3_add(vs[0].n,vs[1].n),vs[2].n));
+    }
+    else
+    {
+        r.wn = vs[0].wn;
+        r.n = vs[0].n;
+    }
 
     return r;
 }
@@ -62,19 +70,10 @@ pixel_t phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     v3_t amb;
 
     v3_t p = a.wv;
-
-    // TODO (18.12.2018): Ortho viepoint
-    //evertex_t evtmp;
-    //evtmp.wv = evtmp.v = (v3_t){0, 0, 1};
-    //evtmp = world2viewport(evtmp, s);
-    //evtmp.v = v3_add(evtmp.v, evtmp.wv);
-    //evtmp = world2viewport(evtmp, s);
-
-    v3_t v = v3_norm((v3_t){-140, -240, 230});//v3_norm(evtmp.v);
-    //v = v3_norm(v3_sub(s->viewport_props.eye, p));
+    v3_t v = s->cam.dir;
     v3_t n = a.wn;
 
-    if (v3_dot(v, n) <= 0)
+    if (v3_dot(v, n) < -0.2)
     {
         r.pos.x = -1;
         r.pos.y = -1;

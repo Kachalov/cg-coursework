@@ -67,6 +67,12 @@ typedef struct scene_st {
     m4_t viewport_mtrx;
     m4_t proj_mtrx;
     m4_t mvp_mtrx;
+    m4_t ortho_mtrx;
+    struct {
+        float x;
+        float z;
+        v3_t dir;
+    } cam;
 } scene_t;
 
 scene_t *scene;
