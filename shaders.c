@@ -290,7 +290,6 @@ pixel_t blinn_phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
     v3_t v = s->cam.dir;
     v3_t n = a.wn;
     v3_t h;
-    v3_t lv;
 
     CHECK_VISIBILITY(r, v, n, 0.2);
 
@@ -305,8 +304,7 @@ pixel_t blinn_phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s)
             s->ls.d[lid].cols.ambient.b
         };
         v3_t l = v3_norm(v3_sub(s->ls.d[lid].pos, p));
-        lv = v3_add(l, v);
-        h = v3_norm(lv);
+        h = v3_norm(v3_add(l, v));
 
         id = v3_add(id, v3_scale(amb, fmax(v3_dot(n, l) * alpha, 0)));
         is = v3_add(is, v3_scale(amb, powf(fmax(v3_dot(n, h) * alpha, 0), 1)));

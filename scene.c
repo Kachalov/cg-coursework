@@ -107,6 +107,22 @@ void scene_example(scene_t *s)
     scene_add_model(s, m);
 }
 
+void scene_test(scene_t *s)
+{
+    scene_create_sphere(
+        s, 0, 0, 20, 5,
+        rgba2int((rgba_t){255, 255, 255, 255}),
+        10, 100);
+
+    scene_create_light(
+        s, -200, -100, 250,
+        rgba2int((rgba_t){194, 48, 56, 100}));
+
+    scene_create_light(
+        s, -200, -300, 250,
+        rgba2int((rgba_t){51, 16, 202, 100}));
+}
+
 export
 scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
 {
