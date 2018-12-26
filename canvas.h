@@ -14,6 +14,13 @@ typedef struct rgba_st {
     uint8_t a;
 } rgba_t;
 
+typedef struct frgba_st {
+    float r;
+    float g;
+    float b;
+    float a;
+} frgba_t;
+
 typedef struct canvas_st {
     rgba_t *data;
     uint16_t w;

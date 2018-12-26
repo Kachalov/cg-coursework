@@ -29,5 +29,23 @@ evertex_t none_shader_v(const evertex_t *vs, int i, scene_t *s);
 pixel_t plain_shader_f(const evertex_t a, const mat_t *mat, scene_t *s);
 evertex_t plain_shader_v(evertex_t *vs, int i, scene_t *s);
 
+pixel_t lambert_shader_f(const evertex_t a, const mat_t *mat, scene_t *s);
+evertex_t lambert_shader_v(const evertex_t *vs, int i, scene_t *s);
+
+pixel_t guro_shader_f(const evertex_t a, const mat_t *mat, scene_t *s);
+evertex_t guro_shader_v(const evertex_t *vs, int i, scene_t *s);
+
 pixel_t phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s);
 evertex_t phong_shader_v(const evertex_t *vs, int i, scene_t *s);
+
+pixel_t blinn_phong_shader_f(const evertex_t a, const mat_t *mat, scene_t *s);
+evertex_t blinn_phong_shader_v(const evertex_t *vs, int i, scene_t *s);
+
+#define CHECK_VISIBILITY(_r, _v, _n, _eps) \
+if (v3_dot(_v, _n) < -_eps) \
+{ \
+    (_r).pos.x = -1; \
+    (_r).pos.y = -1; \
+    (_r).col.a = 0; \
+    return (_r); \
+}

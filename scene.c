@@ -10,13 +10,42 @@
 
 void scene_example(scene_t *s)
 {
-    scene_create_cube(
+    /*scene_create_cube(
         s, 100, 0, -5, 4,
         rgba2int((rgba_t){255, 140, 80, 255}),
-        100, 100, 100);
+        100, 100, 100);*/
+
+    for (int i = 0; i < 5; i++)
+        scene_create_sphere(
+            s, -200 + 150 * i, 400 - 150 * i, 20, 1 + i,
+            rgba2int((rgba_t){255, 255, 255, 255}),
+            20, 75);
+
+    for (int i = 0; i < 5; i++)
+        scene_create_cube(
+            s, -500 + 150 * i, 100 - 150 * i, 20, 1 + i,
+            rgba2int((rgba_t){255, 255, 255, 255}),
+            100, 100, 100);
+
+    scene_create_light(
+        s, -200, 200, 250,
+        rgba2int((rgba_t){194, 48, 56, 100}));
+
+    scene_create_light(
+        s, 0, 0, 250,
+        rgba2int((rgba_t){14, 193, 16, 100}));
+
+    scene_create_light(
+        s, 200, -200, 250,
+        rgba2int((rgba_t){51, 16, 202, 100}));
+
+    /*scene_create_sphere(
+        s, -60, 200, 20, 5,
+        rgba2int((rgba_t){232, 224, 142, 255}),
+        20, 100);
 
     scene_create_sphere(
-        s, -60, 200, 20, 1,
+        s, 140, 200, 20, 3,
         rgba2int((rgba_t){232, 224, 142, 255}),
         20, 100);
 
@@ -39,7 +68,7 @@ void scene_example(scene_t *s)
 
     scene_create_light(
         s, -200, -200, 250,
-        rgba2int((rgba_t){30, 200, 40, 50}));
+        rgba2int((rgba_t){30, 200, 40, 50}));*/
 
     {
         m4_t m = s->mvp_mtrx;
@@ -53,10 +82,10 @@ void scene_example(scene_t *s)
     model_t *m = model_init(NULL, 4, 1, 2);
 
     vertex_t vs[] = {
-        {-300, 300, -0.8},
-        {-300, -300, -0.8},
-        {300, -300, -0.8},
-        {300, 300, -0.8}
+        {-600, 600, -0.8},
+        {-600, -600, -0.8},
+        {600, -600, -0.8},
+        {600, 600, -0.8}
     };
     m = model_add_vertices_arr(m, vs, 4);
 
@@ -99,7 +128,7 @@ scene_t *scene_init(uint32_t w, uint32_t h, rgba_t *canv, uint16_t *zbuf)
     s->models.d = 0;
     s->models.l = 0;
 
-    s->viewport_props.eye = (v3_t){0, 0, -400};//{1, 0.4, -1};
+    s->viewport_props.eye = (v3_t){0, 0, -800};//{1, 0.4, -1};
     s->viewport_props.center = (v3_t){0, 0, 0};
     s->viewport_props.up = (v3_t){0, 1, 0};
 
@@ -403,13 +432,13 @@ void *scene_select_shder_v(int n)
         case 1:
             return plain_shader_v;
         case 2:
-            return none_shader_v;
+            return lambert_shader_v;
         case 3:
-            return none_shader_v;
+            return guro_shader_v;
         case 4:
             return phong_shader_v;
         case 5:
-            return none_shader_v;
+            return blinn_phong_shader_v;
         default:
             return none_shader_v;
     }
@@ -424,13 +453,13 @@ void *scene_select_shder_f(int n)
         case 1:
             return plain_shader_f;
         case 2:
-            return none_shader_f;
+            return lambert_shader_f;
         case 3:
-            return none_shader_f;
+            return guro_shader_f;
         case 4:
             return phong_shader_f;
         case 5:
-            return none_shader_f;
+            return blinn_phong_shader_f;
         default:
             return none_shader_f;
     }

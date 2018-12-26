@@ -38,7 +38,8 @@ webassembly
       },
       logs: str => {
         document.getElementById('logs').innerHTML += module.memory.getString(str) + '</br>'
-      }
+      },
+      powf: (x, f) => x ** f
       //set_pixel: image.putImageData.bind(ctx),
       //get_pixel: image.getImageData.bind(ctx),
     }

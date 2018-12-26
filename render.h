@@ -24,36 +24,14 @@ typedef struct evertex_st {
     v3_t n;
     v3_t wn;
     rgba_t c;
-    rgba_t light;
+    frgba_t light;
 } evertex_t;
 
 typedef struct yield_evertex_st {
     evertex_t ev;
     evertex_t dev;
-    struct {
-        float r;
-        float g;
-        float b;
-        float a;
-    } evc;
-    struct {
-        float r;
-        float g;
-        float b;
-        float a;
-    } evlight;
-    struct {
-        float r;
-        float g;
-        float b;
-        float a;
-    } devc;
-    struct {
-        float r;
-        float g;
-        float b;
-        float a;
-    } devlight;
+    frgba_t evc;
+    frgba_t devc;
     double d;
     double t;
 } yield_evertex_t;
@@ -94,8 +72,8 @@ void draw_norm(scene_t *s, evertex_t v);
 (_ev)->c.g = clamp(lroundf((_yv)->evc.g += (_yv)->devc.g), 0, 255); \
 (_ev)->c.b = clamp(lroundf((_yv)->evc.b += (_yv)->devc.b), 0, 255); \
 (_ev)->c.a = clamp(lroundf((_yv)->evc.a += (_yv)->devc.a), 0, 255); \
-(_ev)->light.r = clamp(lroundf((_yv)->evlight.r += (_yv)->devlight.r), 0, 255); \
-(_ev)->light.g = clamp(lroundf((_yv)->evlight.g += (_yv)->devlight.g), 0, 255); \
-(_ev)->light.b = clamp(lroundf((_yv)->evlight.b += (_yv)->devlight.b), 0, 255); \
-(_ev)->light.a = clamp(lroundf((_yv)->evlight.a += (_yv)->devlight.a), 0, 255); \
+(_ev)->light.r = (_yv)->ev.light.r += (_yv)->dev.light.r; \
+(_ev)->light.g = (_yv)->ev.light.g += (_yv)->dev.light.g; \
+(_ev)->light.b = (_yv)->ev.light.b += (_yv)->dev.light.b; \
+(_ev)->light.a = (_yv)->ev.light.a += (_yv)->dev.light.a; \
 (_yv)->t += (_yv)->d;

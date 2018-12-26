@@ -19,6 +19,13 @@ evertex_t world2viewport(evertex_t v, scene_t *s)
         v3.z - s->viewport_props.eye.z
     };
 
+    v3 = m4_v3t_mul(&s->ortho_mtrx, &r.n);
+    r.n = v3_norm((v3_t){
+        v3.x + s->canv->w / 2,
+        v3.y + s->canv->h / 2,
+        v3.z - s->viewport_props.eye.z
+    });
+
     return r;
 }
 
@@ -41,7 +48,7 @@ evertex_t vertex2evertex(vertex_t v, v3_t n, scene_t *s)
     r = world2viewport(r, s);
 
     r.c = (rgba_t){0, 0, 0, 0};
-    r.light = (rgba_t){0, 0, 0, 0};
+    r.light = (frgba_t){0, 0, 0, 0};
 
     return r;
 }
@@ -56,6 +63,16 @@ v4_t rgba2v4(rgba_t rgba)
     };
 }
 
+v4_t frgba2v4(frgba_t frgba)
+{
+    return (v4_t) {
+        frgba.r,
+        frgba.g,
+        frgba.b,
+        frgba.a
+    };
+}
+
 rgba_t v42rgba(v4_t v)
 {
     return (rgba_t) {
@@ -63,6 +80,16 @@ rgba_t v42rgba(v4_t v)
         clamp(v.y, 0, 255),
         clamp(v.z, 0, 255),
         clamp(v.w, 0, 255),
+    };
+}
+
+frgba_t v42frgba(v4_t v)
+{
+    return (frgba_t) {
+        v.x,
+        v.y,
+        v.z,
+        v.w,
     };
 }
 
